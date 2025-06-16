@@ -48,7 +48,7 @@ const Sidebar = ({
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-300 dark:border-gray-700 flex items-center justify-between">
-        {!isCollapsed && <h1 className="text-xl font-bold">Notes App</h1>}{" "}
+        {!isCollapsed && <h1 className="text-xl font-bold">NoteShare</h1>}{" "}
         <button
           type="button"
           onClick={() => {
@@ -80,7 +80,7 @@ const Sidebar = ({
                 onClick={() => onSelectFolder(folder.id)}
                 className={`flex items-center w-full px-4 py-3 text-left rounded-lg my-1 transition-all duration-200 ease-in-out ${
                   activeFolder === folder.id
-                    ? "bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 shadow-sm font-medium"
+                    ? "bg-blue-300 dark:bg-blue-800 text-neutral-800 dark:text-blue-200 shadow-sm font-medium"
                     : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
                 }`}
               >
