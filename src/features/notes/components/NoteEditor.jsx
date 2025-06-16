@@ -21,6 +21,7 @@ import {
 } from "../../../shared/utils/cryptoUtils";
 import InsightsPanel from "../../ai/InsightsPanel";
 import { store } from "../../../app/store";
+import "./encryption-modal.css";
 
 const NoteEditor = ({ noteId, onClose }) => {
   const dispatch = useDispatch();
@@ -40,32 +41,20 @@ const NoteEditor = ({ noteId, onClose }) => {
   const [grammarErrors, setGrammarErrors] = useState([]);
   const [isHoveringTerm, setIsHoveringTerm] = useState(null);
   const [isGlossaryEnabled, setIsGlossaryEnabled] = useState(true);
+
   // Load note data
   useEffect(() => {
     if (note) {
-      console.log("Loading note data:", {
-        id: note.id,
-        title: note.title,
-        isPinned: note.isPinned,
-        isEncrypted: note.isEncrypted,
-      });
       setTitle(note.title);
       setContent(note.content);
       setIsPinned(note.isPinned);
       setIsEncrypted(note.isEncrypted);
-      console.log(
-        "Note data loaded, isPinned set to:",
-        note.isPinned,
-        "isEncrypted set to:",
-        note.isEncrypted
-      );
     }
   }, [note]);
 
   // Track encryption state changes to ensure UI syncs correctly
   useEffect(() => {
     if (note && note.isEncrypted !== isEncrypted) {
-      console.log("Syncing encryption state from note:", note.isEncrypted);
       setIsEncrypted(note.isEncrypted);
     }
   }, [note, isEncrypted]);
@@ -112,12 +101,9 @@ const NoteEditor = ({ noteId, onClose }) => {
           content
         );
 
-        // Only update if there's a difference to avoid infinite loop
         if (highlightedContent !== content) {
-          // Update the content with highlighted terms
           setContent(highlightedContent);
 
-          // Update the note in Redux to save the highlighted content
           dispatch(
             updateNote(noteId, {
               content: highlightedContent,
@@ -129,7 +115,6 @@ const NoteEditor = ({ noteId, onClose }) => {
       }
     };
 
-    // Use a debounce to avoid processing too frequently
     const debounceTimeout = setTimeout(() => {
       processContentWithHighlights();
     }, 1500);
@@ -146,11 +131,6 @@ const NoteEditor = ({ noteId, onClose }) => {
         content !== note.content ||
         isPinned !== note.isPinned
       ) {
-        console.log("Auto-saving note with changes:", {
-          title,
-          content,
-          isPinned,
-        });
         dispatch(updateNote(noteId, { title, content, isPinned }));
       }
     }, 2000); // Auto-save every 2 seconds
@@ -158,32 +138,19 @@ const NoteEditor = ({ noteId, onClose }) => {
     return () => clearTimeout(autoSaveTimeout);
   }, [title, content, isPinned, note, noteId, dispatch]); // Save on blur
   const handleBlur = () => {
-    console.log("Blur event triggered, checking for changes to save");
-    console.log("Current state:", { title, content, isPinned });
     if (note) {
-      console.log("Note state:", {
-        noteTitle: note.title,
-        noteContent: note.content,
-        noteIsPinned: note.isPinned,
-      });
-
       if (
         title !== note.title ||
         content !== note.content ||
         isPinned !== note.isPinned
       ) {
-        console.log("Changes detected, updating note");
         dispatch(updateNote(noteId, { title, content, isPinned }));
       }
     }
   };
-  // Handle note deletion
-  const handleDelete = () => {
-    console.log("Deleting note with ID:", noteId);
 
-    // Double-check that we're not deleting an encrypted note
+  const handleDelete = () => {
     if (isEncrypted) {
-      console.error("Attempted to delete an encrypted note");
       alert(
         "Security protection: Cannot delete an encrypted note. Please decrypt the note first."
       );
@@ -193,9 +160,7 @@ const NoteEditor = ({ noteId, onClose }) => {
     if (noteId) {
       try {
         dispatch(deleteNote({ id: noteId }));
-        console.log("Note moved to trash");
 
-        // Ensure we navigate away from the deleted note
         setTimeout(() => {
           onClose();
         }, 100);
@@ -205,7 +170,7 @@ const NoteEditor = ({ noteId, onClose }) => {
     } else {
       console.error("Cannot delete note: No noteId provided");
     }
-  }; // Handle encryption
+  };
   const handleEncrypt = () => {
     if (password !== confirmPassword) {
       alert("Passwords do not match");
@@ -218,19 +183,8 @@ const NoteEditor = ({ noteId, onClose }) => {
     }
 
     try {
-      console.log("Encrypting note content...");
-      console.log("Original content length:", content?.length || 0);
-
-      // Attempt to encrypt the content
       const encryptedContent = encryptContent(content, password);
-      console.log(
-        "Encryption successful, encrypted content length:",
-        encryptedContent?.length || 0
-      );
 
-      console.log("Updating Redux state with encrypted content");
-
-      // Update Redux state
       dispatch(
         updateNote(noteId, {
           content: encryptedContent,
@@ -238,30 +192,18 @@ const NoteEditor = ({ noteId, onClose }) => {
         })
       );
 
-      // Update local state for immediate UI feedback
       setContent(encryptedContent);
       setIsEncrypted(true);
       setShowEncryptModal(false);
 
-      // Clear password fields
       setPassword("");
       setConfirmPassword("");
 
-      console.log("Note encryption process completed");
-
-      // Force a refresh after a short delay to ensure everything is in sync
       setTimeout(() => {
-        console.log("Refreshing UI after encryption...");
-        // Re-fetch the note from Redux to ensure we have the latest state
         const updatedNote = store
           .getState()
           .notes.notes.find((n) => n.id === noteId);
         if (updatedNote) {
-          console.log("Updated note state:", {
-            isEncrypted: updatedNote.isEncrypted,
-            contentLength: updatedNote.content?.length || 0,
-          });
-          // Force update our local state with the latest from Redux
           setIsEncrypted(updatedNote.isEncrypted);
           setContent(updatedNote.content);
         }
@@ -271,27 +213,18 @@ const NoteEditor = ({ noteId, onClose }) => {
       alert("There was an error encrypting your note. Please try again.");
     }
   };
-  // Handle decryption
+
   const handleDecrypt = () => {
     try {
-      console.log("Decrypting note content...");
-      console.log("Current encrypted content length:", content?.length || 0);
-
-      // Attempt to decrypt the content
       let decryptedContent;
       try {
         decryptedContent = decryptContent(content, password);
-        console.log(
-          "Decryption successful, decrypted content length:",
-          decryptedContent?.length || 0
-        );
       } catch (decryptError) {
         console.error("Decryption operation failed:", decryptError);
         alert(`Decryption failed: ${decryptError.message}`);
         return;
       }
 
-      // Verify the decrypted content is valid
       if (!decryptedContent || decryptedContent.trim() === "") {
         console.error("Decryption produced empty content");
         alert(
@@ -300,9 +233,6 @@ const NoteEditor = ({ noteId, onClose }) => {
         return;
       }
 
-      console.log("Updating Redux state with decrypted content");
-
-      // Update Redux state with the decrypted content
       dispatch(
         updateNote(noteId, {
           content: decryptedContent,
@@ -310,27 +240,16 @@ const NoteEditor = ({ noteId, onClose }) => {
         })
       );
 
-      // Update local state for immediate UI feedback
       setContent(decryptedContent);
       setIsEncrypted(false);
       setShowEncryptModal(false);
       setPassword("");
 
-      console.log("Note decryption process completed");
-
-      // Force a refresh after a short delay to ensure everything is in sync
       setTimeout(() => {
-        console.log("Refreshing UI after decryption...");
-        // Re-fetch the note from Redux to ensure we have the latest state
         const updatedNote = store
           .getState()
           .notes.notes.find((n) => n.id === noteId);
         if (updatedNote) {
-          console.log("Updated note state:", {
-            isEncrypted: updatedNote.isEncrypted,
-            contentLength: updatedNote.content?.length || 0,
-          });
-          // Force update our local state with the latest from Redux
           setIsEncrypted(updatedNote.isEncrypted);
           setContent(updatedNote.content);
         }
@@ -341,7 +260,6 @@ const NoteEditor = ({ noteId, onClose }) => {
     }
   };
 
-  // Update password strength indicator
   useEffect(() => {
     if (password) {
       const strength = calculatePasswordStrength(password);
@@ -351,7 +269,6 @@ const NoteEditor = ({ noteId, onClose }) => {
     }
   }, [password]);
 
-  // Render the password strength meter
   const renderPasswordStrengthMeter = () => {
     let color = "bg-red-500";
     let label = "Weak";
@@ -377,45 +294,36 @@ const NoteEditor = ({ noteId, onClose }) => {
     );
   };
 
-  // Handle exporting/downloading the note
   const handleExportNote = () => {
     try {
-      // Create a meaningful filename based on the note title
       const filename = `${
         title.replace(/[^a-z0-9]/gi, "_").toLowerCase() || "note"
       }.txt`;
 
-      // Prepare the content - if it's HTML, strip the tags for a plain text export
       const textContent = isEncrypted
         ? "[This note is encrypted and cannot be exported in readable format]"
         : content.replace(/<[^>]*>/g, "");
 
-      // Create a metadata header
       const metadata = `Title: ${title}\nDate: ${new Date().toLocaleString()}\n\n`;
       const fullContent = metadata + textContent;
 
-      // Create a Blob with the content
       const blob = new Blob([fullContent], {
         type: "text/plain;charset=utf-8",
       });
 
-      // Create a temporary link element to trigger the download
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = filename;
 
-      // Append the link to the body, click it, and remove it
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      console.log("Note exported successfully as", filename);
     } catch (error) {
       console.error("Error exporting note:", error);
       alert("There was an error exporting your note. Please try again.");
     }
   };
-  // Handle term highlight hover events
+
   const handleTermMouseEnter = (event) => {
     if (!isGlossaryEnabled) return;
 
@@ -424,10 +332,8 @@ const NoteEditor = ({ noteId, onClose }) => {
     const termDefinition = target.getAttribute("data-term-definition");
     const termText = target.textContent;
 
-    // Get position for tooltip
     const rect = target.getBoundingClientRect();
 
-    // Prevent excessive re-renders by checking if we're already hovering over this term
     if (isHoveringTerm && isHoveringTerm.term === termText) return;
 
     setIsHoveringTerm({
@@ -445,15 +351,12 @@ const NoteEditor = ({ noteId, onClose }) => {
     setIsHoveringTerm(null);
   };
 
-  // Attach event listeners to term highlights
   useEffect(() => {
     if (isEncrypted || !isGlossaryEnabled) {
-      // Clear any tooltip if glossary is disabled
       setIsHoveringTerm(null);
       return;
     }
 
-    // Small delay to ensure DOM is updated after content changes
     const attachTimeout = setTimeout(() => {
       const termElements = document.querySelectorAll(".term-highlight");
 
@@ -465,7 +368,7 @@ const NoteEditor = ({ noteId, onClose }) => {
 
     return () => {
       clearTimeout(attachTimeout);
-      // Clean up existing listeners when component unmounts or content changes
+
       const termElements = document.querySelectorAll(".term-highlight");
       termElements.forEach((element) => {
         element.removeEventListener("mouseenter", handleTermMouseEnter);
@@ -480,7 +383,6 @@ const NoteEditor = ({ noteId, onClose }) => {
     handleTermMouseLeave,
   ]);
 
-  // Term definition tooltip component
   const TermTooltip = () => {
     if (!isHoveringTerm) return null;
 
@@ -536,32 +438,25 @@ const NoteEditor = ({ noteId, onClose }) => {
       </div>
     );
   };
-  // Handle glossary toggle - remove highlights when disabled
+
   useEffect(() => {
     if (!isGlossaryEnabled && content && !isEncrypted) {
-      // Don't process if content doesn't have any highlights
       if (!content.includes('class="term-highlight"')) return;
 
-      // Create a new temporary element to parse and clean the HTML safely
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = content;
 
-      // Find all highlight spans and replace with their text content
       const highlightSpans = tempDiv.querySelectorAll(".term-highlight");
       highlightSpans.forEach((span) => {
         const textNode = document.createTextNode(span.textContent);
         span.parentNode.replaceChild(textNode, span);
       });
 
-      // Get the cleaned HTML
       const cleanContent = tempDiv.innerHTML;
 
-      // Only update if there's a difference to avoid infinite loops
       if (cleanContent !== content) {
-        // Update the content without highlights
         setContent(cleanContent);
 
-        // Update the note in Redux with small delay to avoid race conditions
         setTimeout(() => {
           dispatch(
             updateNote(noteId, {
@@ -593,36 +488,21 @@ const NoteEditor = ({ noteId, onClose }) => {
           <button
             type="button"
             onClick={() => {
-              console.log(
-                "Pin button clicked, current isPinned state:",
-                isPinned
-              );
               const newPinnedState = !isPinned;
 
-              // Update local state first for immediate UI feedback
               setIsPinned(newPinnedState);
 
-              // Then dispatch the Redux action with ONLY the isPinned change
-              // This ensures we're not accidentally overwriting other fields
-              console.log(
-                "Dispatching updateNote with isPinned:",
-                newPinnedState
-              );
               dispatch(
                 updateNote(noteId, {
                   isPinned: newPinnedState,
                 })
               );
 
-              // Force re-render if needed by touching state again after a slight delay
               setTimeout(() => {
                 setIsPinned((prev) => {
-                  console.log("Confirming pin state after update:", prev);
                   return prev;
                 });
               }, 100);
-
-              console.log("Pin status updated to:", newPinnedState);
             }}
             className={`p-1 rounded-full ${
               isPinned ? "text-yellow-500" : "text-gray-400"
@@ -778,6 +658,7 @@ const NoteEditor = ({ noteId, onClose }) => {
           </div>
         ) : (
           <>
+            {" "}
             <RichTextEditor
               initialContent={content}
               onChange={setContent}
@@ -788,7 +669,6 @@ const NoteEditor = ({ noteId, onClose }) => {
                   : "Write your note..."
               }
             />
-            {/* Term definition tooltip */}
             {isHoveringTerm && <TermTooltip />}
           </>
         )}{" "}
@@ -802,7 +682,7 @@ const NoteEditor = ({ noteId, onClose }) => {
       {/* Encrypt/Decrypt Modal */}
       {showEncryptModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 encryption-modal-container">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-96">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 encryption-modal-content relative z-[1001]">
             <h3 className="text-xl font-semibold mb-4">
               {isEncrypted ? "Decrypt Note" : "Encrypt Note"}
             </h3>

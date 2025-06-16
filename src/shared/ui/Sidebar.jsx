@@ -35,11 +35,6 @@ const Sidebar = ({
     },
   ];
 
-  // Effect to monitor isDarkMode changes
-  useEffect(() => {
-    console.log("Dark mode state changed:", isDarkMode);
-  }, [isDarkMode]);
-
   return (
     <div
       className={`flex flex-col h-full bg-gray-100 dark:bg-gray-900 border-r border-gray-300 dark:border-gray-700 transition-all ${

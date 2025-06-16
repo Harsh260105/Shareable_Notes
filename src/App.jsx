@@ -13,40 +13,23 @@ import {
 } from "./features/notes/slices/notesSlice";
 import "./App.css";
 
-// This component will sync pinnedNotes with note.isPinned on startup
 const NotesSync = () => {
   const dispatch = useDispatch();
   const allNotes = useSelector(selectAllNotes);
 
-  // Ensure we have a valid array, handling all edge cases
   const pinnedNotes = useSelector((state) => {
-    // If pinnedNotes doesn't exist or isn't an array, return empty array
     const pinnedIds = state.notes.pinnedNotes;
     return Array.isArray(pinnedIds) ? pinnedIds : [];
   });
 
-  // Run once on component mount to ensure data consistency
   useEffect(() => {
     try {
-      console.log("Running pinnedNotes sync check...");
-
-      // First, fix any state integrity issues
       dispatch(fixStateIntegrity());
-      console.log("State integrity check complete");
 
-      // Now we can safely run the normal sync logic
-      console.log("Current pinnedNotes:", pinnedNotes);
-
-      // Check for notes where isPinned doesn't match their presence in pinnedNotes array
       allNotes.forEach((note) => {
-        // Safely check if the note ID is in the pinnedNotes array
         const isInPinnedArray = pinnedNotes.includes(note.id);
 
-        // If there's a mismatch, update the note
         if (note.isPinned !== isInPinnedArray) {
-          console.log(
-            `Fixing note ${note.id} - isPinned=${note.isPinned}, inPinnedArray=${isInPinnedArray}`
-          );
           dispatch(updateNote(note.id, { isPinned: isInPinnedArray }));
         }
       });
@@ -55,7 +38,7 @@ const NotesSync = () => {
     }
   }, [dispatch, allNotes, pinnedNotes]);
 
-  return null; // This component doesn't render anything
+  return null;
 };
 
 function App() {
@@ -67,13 +50,11 @@ function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { toggleTheme } = useTheme();
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobileView(mobile);
 
-      // On desktop, always show sidebar and note list
       if (!mobile) {
         setShowSidebar(true);
         setShowNoteList(true);
@@ -84,39 +65,28 @@ function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Handle folder selection
   const handleSelectFolder = (folderId) => {
     setActiveFolder(folderId);
     setSelectedNoteId(null);
 
-    // On mobile, close sidebar and show note list
     if (isMobileView) {
       setShowSidebar(false);
       setShowNoteList(true);
     }
   };
 
-  // Handle note selection
   const handleSelectNote = (noteId) => {
-    console.log("Selecting note with ID:", noteId);
     setSelectedNoteId(noteId);
 
-    // On mobile, hide note list and show editor
     if (isMobileView) {
       setShowNoteList(false);
     }
   };
 
-  // Handle back navigation on mobile
   const handleBackToList = () => {
     setSelectedNoteId(null);
     setShowNoteList(true);
   };
-
-  // Force refresh when active folder changes (especially for trash)
-  useEffect(() => {
-    console.log("Active folder changed to:", activeFolder);
-  }, [activeFolder]);
 
   return (
     <Provider store={store}>

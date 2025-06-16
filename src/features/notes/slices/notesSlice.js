@@ -88,48 +88,35 @@ export const notesSlice = createSlice({
                 // Update note
                 note.title = title ?? note.title;
                 note.content = content ?? note.content;
-                note.lastModified = new Date().toISOString();
-
-                // Handle encryption status if provided
+                note.lastModified = new Date().toISOString();                // Handle encryption status if provided
                 if (isEncrypted !== undefined) {
-                    console.log('Updating encryption status in reducer:', { noteId: id, currentEncrypted: note.isEncrypted, newEncrypted: isEncrypted });
                     note.isEncrypted = isEncrypted;
                 }
 
                 // Handle pin status - only if it was explicitly included in the update
-                if (isPinned !== undefined && isPinned !== note.isPinned) {
-                    console.log('Updating pin status in reducer:', { noteId: id, currentPinned: note.isPinned, newPinned: isPinned });
-
-                    // Check max pinned notes limit only when trying to pin
+                if (isPinned !== undefined && isPinned !== note.isPinned) {                    // Check max pinned notes limit only when trying to pin
                     if (isPinned && state.pinnedNotes.length >= 5) {
-                        console.log('Cannot pin note: Max 5 pinned notes limit reached');
                         return; // Exit early without updating
                     }
 
-                    // Update the note's pin status first
                     note.isPinned = isPinned;
-                    console.log('Note isPinned set to:', isPinned);                    // Then update the pinnedNotes array accordingly
+
                     if (isPinned) {
-                        // Ensure pinnedNotes is initialized
+
                         if (!state.pinnedNotes) {
                             state.pinnedNotes = [];
                         }
-
-                        // Check if the ID is already in pinnedNotes (should not happen but being defensive)
                         if (!state.pinnedNotes.includes(id)) {
                             state.pinnedNotes.push(id);
-                            console.log('Added note ID to pinnedNotes array:', id);
                         }
+
                     } else {
                         if (state.pinnedNotes) {
                             state.pinnedNotes = state.pinnedNotes.filter((pinnedId) => pinnedId !== id);
-                            console.log('Removed note ID from pinnedNotes array:', id);
                         }
                     }
-                    console.log('New pinnedNotes array:', state.pinnedNotes ? [...state.pinnedNotes] : []);
                 }
             }, prepare: (id, updates) => {
-                console.log('Preparing updateNote action:', { id, updates });
                 return {
                     payload: {
                         id,
@@ -140,21 +127,17 @@ export const notesSlice = createSlice({
         }, deleteNote: {
             reducer: (state, action) => {
                 const { id } = action.payload;
-                console.log('Deleting note in reducer:', id);
                 const note = state.notes.find((note) => note.id === id);
 
                 if (!note) {
-                    console.error('Note not found in state:', id);
                     return;
                 }
 
                 // Check if the note is encrypted
                 if (note.isEncrypted) {
-                    console.error('Cannot delete encrypted note:', id);
                     return; // Silently fail - the UI will have already shown an error
                 }
 
-                console.log('Found note to trash:', note.title);
                 note.isTrashed = true;
                 // If note was pinned, remove from pinnedNotes
                 if (note.isPinned) {
@@ -165,10 +148,8 @@ export const notesSlice = createSlice({
                         state.pinnedNotes = state.pinnedNotes.filter((pinnedId) => pinnedId !== id);
                     }
                 }
-                console.log('Note successfully moved to trash');
             },
             prepare: (payload) => {
-                console.log('Preparing deleteNote action with payload:', payload);
                 return { payload };
             },
         },
@@ -186,7 +167,6 @@ export const notesSlice = createSlice({
             // Check if the note is encrypted before permanently deleting
             const noteToDelete = state.notes.find(note => note.id === id);
             if (noteToDelete && noteToDelete.isEncrypted) {
-                console.error('Cannot permanently delete encrypted note:', id);
                 return; // Prevent deletion of encrypted notes
             }
 
@@ -232,9 +212,8 @@ export const notesSlice = createSlice({
             state.sortDirection = action.payload;
         },
 
-        // Fix any state inconsistencies
         fixStateIntegrity: (state) => {
-            // Ensure pinnedNotes is always an array
+
             if (!state.pinnedNotes || !Array.isArray(state.pinnedNotes)) {
                 console.warn('Fixing corrupted pinnedNotes state - was:', state.pinnedNotes);
                 state.pinnedNotes = [];
@@ -245,10 +224,8 @@ export const notesSlice = createSlice({
 
             state.notes.forEach(note => {
                 if (note.isPinned && !state.pinnedNotes.includes(note.id)) {
-                    console.log(`Adding missing pinned note ${note.id} to pinnedNotes array`);
                     state.pinnedNotes.push(note.id);
                 } else if (!note.isPinned && state.pinnedNotes.includes(note.id)) {
-                    console.log(`Removing incorrectly pinned note ${note.id} from pinnedNotes array`);
                     state.pinnedNotes = state.pinnedNotes.filter(id => id !== note.id);
                 }
             });
@@ -258,7 +235,6 @@ export const notesSlice = createSlice({
             const invalidPinnedIds = state.pinnedNotes.filter(id => !validNoteIds.includes(id));
 
             if (invalidPinnedIds.length > 0) {
-                console.log('Removing invalid pinned note IDs:', invalidPinnedIds);
                 state.pinnedNotes = state.pinnedNotes.filter(id => validNoteIds.includes(id));
             }
         },
@@ -281,13 +257,11 @@ export const {
 
 // Selectors
 export const selectAllNotes = (state) => {
-    console.log('All notes count:', state.notes.notes.length);
     return state.notes.notes;
 };
 
 export const selectActiveNotes = (state) => {
     const activeNotes = state.notes.notes.filter((note) => !note.isTrashed);
-    console.log('Active notes count:', activeNotes.length);
     return activeNotes;
 };
 
@@ -299,12 +273,7 @@ export const selectPinnedNotes = (state) => {
         note.isPinned && !note.isTrashed && pinnedNoteIds.includes(note.id)
     );
 
-    console.log('Pinned notes count (from selector):', pinnedNotes.length);
-    console.log('Pinned note IDs in state:', state.notes.pinnedNotes);
-    console.log('Notes with isPinned=true:',
-        state.notes.notes.filter(n => n.isPinned && !n.isTrashed)
-            .map(n => ({ id: n.id, title: n.title }))
-    );    // Verify that all notes with isPinned=true are in the pinnedNotes array
+    // Verify that all notes with isPinned=true are in the pinnedNotes array
     const notesWithIsPinnedTrue = state.notes.notes.filter(n => n.isPinned && !n.isTrashed);
 
     // Only check if pinnedNoteIds exists
@@ -327,7 +296,6 @@ export const selectUnpinnedNotes = (state) => {
     const unpinnedNotes = state.notes.notes.filter(
         (note) => !note.isPinned && !note.isTrashed && !pinnedNoteIds.includes(note.id)
     );
-    console.log('Unpinned notes count:', unpinnedNotes.length);
     return unpinnedNotes;
 };
 

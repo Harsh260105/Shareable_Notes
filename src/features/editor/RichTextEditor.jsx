@@ -24,11 +24,8 @@ const RichTextEditor = ({
   const [isHtmlView, setIsHtmlView] = useState(false);
   const htmlTextareaRef = useRef(null);
   const { isDarkMode } = useTheme();
-
-  // Use content prop if provided, otherwise use initialContent
   const effectiveContent = content !== undefined ? content : initialContent;
 
-  // Font sizes available in the dropdown
   const fontSizes = useMemo(
     () => [
       { value: "12", label: "12px" },
@@ -43,7 +40,7 @@ const RichTextEditor = ({
       { value: "48", label: "48px" },
     ],
     []
-  ); // Use the improved hook
+  );
   const {
     editorRef,
     content: editorContent,
@@ -60,32 +57,25 @@ const RichTextEditor = ({
     restoreSelection,
     enforceWordWrap,
   } = useRichTextEditor(effectiveContent, onChange);
-
-  // Apply word wrapping on mount and when content changes
   useEffect(() => {
     if (editorRef.current && !isHtmlView) {
       enforceWordWrap();
     }
   }, [enforceWordWrap, isHtmlView, effectiveContent]);
 
-  // Helper function to ensure the editor has focus
   const ensureEditorFocus = useCallback(() => {
     if (editorRef.current && document.activeElement !== editorRef.current) {
       editorRef.current.focus();
     }
   }, [editorRef]);
 
-  // Handle format button clicks with proper selection management
   const handleFormatClick = useCallback(
     (command, value = null) => {
       if (disabled || isHtmlView) return;
 
-      // Directly apply formatting without selection concerns
       if (editorRef.current) {
-        // Focus the editor if needed
         ensureEditorFocus();
 
-        // Apply the formatting immediately (no need for saveSelection/restoreSelection)
         formatText(command, value);
       }
     },
@@ -94,10 +84,8 @@ const RichTextEditor = ({
   const handleFontSizeChange = useCallback(
     (e) => {
       const fontSize = e.target.value;
-      console.log("Applying font size:", fontSize);
 
       if (fontSize && !disabled && !isHtmlView) {
-        // Focus editor first
         if (editorRef.current) {
           editorRef.current.focus();
         }
@@ -112,13 +100,10 @@ const RichTextEditor = ({
   const handleAlignmentChange = useCallback(
     (alignment) => {
       if (!disabled && !isHtmlView) {
-        // Save current selection before changing alignment
         saveSelection();
 
-        // Apply alignment change
         handleFormatClick("align", alignment);
 
-        // Ensure editor gets focus back after button interaction
         setTimeout(() => {
           ensureEditorFocus();
           restoreSelection();
@@ -134,29 +119,24 @@ const RichTextEditor = ({
       restoreSelection,
     ]
   );
-  // Toggle between HTML and visual view
+
   const toggleView = useCallback(() => {
     if (disabled) return;
     if (isHtmlView) {
-      // Switch to visual view
       const htmlContent = htmlTextareaRef.current?.value || editorContent;
       if (editorRef.current) {
         editorRef.current.innerHTML = htmlContent;
         onChange(htmlContent);
-        // Apply word wrapping to ensure content is properly formatted
         enforceWordWrap();
       }
       setIsHtmlView(false);
-      // Focus editor after switching
       setTimeout(() => {
         if (editorRef.current) {
           editorRef.current.focus();
         }
       }, 0);
     } else {
-      // Switch to HTML view
       setIsHtmlView(true);
-      // Focus HTML textarea after switching
       setTimeout(() => {
         if (htmlTextareaRef.current) {
           htmlTextareaRef.current.focus();
@@ -174,10 +154,10 @@ const RichTextEditor = ({
     [onChange]
   );
 
-  // Clear all content
   const handleClearContent = useCallback(() => {
     clearContent();
-  }, [clearContent]); // Format button component for reusability
+  }, [clearContent]);
+
   const FormatButton = ({
     command,
     value,
@@ -193,7 +173,6 @@ const RichTextEditor = ({
       }`}
       onClick={() => handleFormatClick(command, value)}
       onMouseDown={(e) => {
-        // Prevent default to avoid focus issues but don't stop propagation
         e.preventDefault();
       }}
       title={title}

@@ -7,14 +7,12 @@ const NOTES_STORE = 'notes';
 export const initDB = async () => {
     return openDB(DB_NAME, DB_VERSION, {
         upgrade(db) {
-            // Create a store of objects
             if (!db.objectStoreNames.contains(NOTES_STORE)) {
                 const notesStore = db.createObjectStore(NOTES_STORE, {
                     keyPath: 'id',
                     autoIncrement: false,
                 });
 
-                // Create indexes
                 notesStore.createIndex('lastModified', 'lastModified', { unique: false });
                 notesStore.createIndex('created', 'created', { unique: false });
                 notesStore.createIndex('isPinned', 'isPinned', { unique: false });

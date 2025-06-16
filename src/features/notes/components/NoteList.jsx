@@ -26,15 +26,6 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
 
   const [showSortOptions, setShowSortOptions] = useState(false);
 
-  // Log pinned notes status on each render for debugging
-  useEffect(() => {
-    console.log(
-      "NoteList render - Pinned notes:",
-      pinnedNotes.map((n) => n.title)
-    );
-    console.log("NoteList render - pinnedNotes IDs in Redux:", allPinnedIds);
-  }, [pinnedNotes, allPinnedIds]);
-
   // Fix state integrity on component mount
   useEffect(() => {
     try {
@@ -46,14 +37,6 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
   }, [dispatch]);
 
   const getNotes = () => {
-    console.log("Getting notes for folder:", activeFolder);
-    console.log(
-      "Pinned notes count:",
-      pinnedNotes.length,
-      pinnedNotes.map((n) => n.title)
-    );
-    console.log("Unpinned notes count:", unpinnedNotes.length);
-
     switch (activeFolder) {
       case "trash":
         return trashedNotes;
@@ -97,7 +80,6 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
       ? `${plainText.substring(0, maxLength)}...`
       : plainText;
   };
-
   // Handle creating a new note
   const handleCreateNote = () => {
     // Create a new note and capture the action result
@@ -106,7 +88,6 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
 
     // Extract the new note ID from the action payload
     const newNoteId = action.payload.id;
-    console.log("Created new note with ID:", newNoteId);
 
     // Select the new note automatically
     onSelectNote(newNoteId);

@@ -47,13 +47,12 @@ html {
 /* Insights panel styles */
 .insights-container {
   max-height: 300px;
-  height : 100%;
+  height: 100%;
   transition: max-height 0.5s ease-in-out;
 }
 
 .insights-container.collapsed {
   max-height: 45px;
-
 }
 
 /* Highlighted terms */
@@ -74,4 +73,44 @@ html {
   border-radius: 2px;
   margin-top: 8px;
   margin-bottom: 16px;
+}
+
+/* Hide editor formatting controls when encryption modal is open */
+.encryption-modal-container ~ * .rte-select,
+.encryption-modal-container ~ * .rte-btn,
+.encryption-modal-container ~ * .rte-toolbar {
+  display: none !important;
+}
+
+/* Additional fix specifically for modals */
+.encryption-modal-container {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.encryption-modal-container .rte-select {
+  display: none !important;
+}
+
+/* Additional style to hide font size dropdown in modal */
+body:has(.encryption-modal-container) .rte-toolbar,
+body:has(.encryption-modal-container) .rte-select,
+body:has(.encryption-modal-container) .rte-btn {
+  display: none !important;
+}
+
+/* Ensure the encryption modal has higher z-index than any editor elements */
+.encryption-modal-container {
+  z-index: 9999 !important;
+}
+
+.encryption-modal-content input,
+.encryption-modal-content button {
+  position: relative;
+  z-index: 10000 !important;
 }

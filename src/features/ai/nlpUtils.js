@@ -1,23 +1,7 @@
-// Google Gemini API utilities
-// Using Gemini API for AI-powered text analysis
-//
-// IMPORTANT: 
-// - This implementation complies with Google Gemini API Terms of Service
-// - The AI-generated content should not be used for medical, legal, or financial advice
-// - Results may occasionally be inaccurate or inappropriate
-// - Applications must be used only by users 18 years or older
-// - Users should review AI-generated content before relying on it
-
-// API key from environment variables - required for Gemini API
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-// If no API key is provided, don't attempt to make API calls
-if (!GOOGLE_API_KEY) {
-    console.error('Missing Gemini API key. Please add VITE_GOOGLE_AI_API_KEY to your .env file.');
-}
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 const callGeminiApi = async (text, prompt) => {
-    // Check if API key is available
     if (!GOOGLE_API_KEY) {
         throw new Error('Gemini API key is not configured. Please add it to your environment variables.');
     }
@@ -72,7 +56,6 @@ const callGeminiApi = async (text, prompt) => {
 
         return await response.json();
     } catch (error) {
-        console.error(`Error calling Gemini API:`, error);
         throw error;
     }
 };
@@ -103,11 +86,9 @@ export const analyzeSentiment = async (text) => {
         try {
             return JSON.parse(jsonMatch[0]);
         } catch (parseError) {
-            console.error('Error parsing sentiment JSON:', parseError);
             return { sentiment: 'neutral', score: 0.5, analysis: 'Error analyzing sentiment.' };
         }
     } catch (error) {
-        console.error('Error analyzing sentiment:', error);
         return { sentiment: 'neutral', score: 0.5, analysis: 'Error analyzing sentiment.' };
     }
 };
@@ -121,11 +102,6 @@ export const getAiContentDisclaimer = () => {
     };
 };
 
-/**
- * Extract key terms from text using Gemini API
- * @param {string} text - The text to analyze
- * @returns {Promise<Array>} - Array of key terms with type and definition
- */
 export const extractKeyTerms = async (text) => {
     if (!text || text.trim().length < 10) return [];
 
@@ -143,10 +119,8 @@ export const extractKeyTerms = async (text) => {
 
         const response = await callGeminiApi(text, prompt);
 
-        // Parse the JSON from the response text
         const responseText = response.candidates[0].content.parts[0].text;
 
-        // Extract JSON array from the response (handling potential text around the JSON)
         const jsonMatch = responseText.match(/\[[\s\S]*\]/);
         if (!jsonMatch) {
             return [];
@@ -154,13 +128,11 @@ export const extractKeyTerms = async (text) => {
 
         try {
             const keyTerms = JSON.parse(jsonMatch[0]);
-            return keyTerms.slice(0, 10); // Ensure we only return max 10 terms
+            return keyTerms.slice(0, 10);
         } catch (parseError) {
-            console.error('Error parsing key terms JSON:', parseError);
             return [];
         }
     } catch (error) {
-        console.error('Error extracting key terms:', error);
         return [];
     }
 };
@@ -182,10 +154,8 @@ export const checkGrammar = async (text) => {
 
         const response = await callGeminiApi(text, prompt);
 
-        // Parse the JSON from the response text
         const responseText = response.candidates[0].content.parts[0].text;
 
-        // Extract JSON array from the response
         const jsonMatch = responseText.match(/\[[\s\S]*\]/);
         if (!jsonMatch) {
             return [];
@@ -194,23 +164,14 @@ export const checkGrammar = async (text) => {
         try {
             return JSON.parse(jsonMatch[0]);
         } catch (parseError) {
-            console.error('Error parsing grammar issues JSON:', parseError);
             return [];
         }
     } catch (error) {
-        console.error('Error checking grammar:', error);
         return [];
     }
 };
 
-/**
- * Generate summary using Gemini API
- * Note: Summaries are AI-generated and may occasionally contain inaccuracies.
- * They should not be used for critical decision-making without human review.
- * 
- * @param {string} text - The text to summarize
- * @returns {Promise<string>} - Generated summary
- */
+
 export const generateSummary = async (text) => {
     if (!text || text.trim().length < 20) return '';
 
@@ -221,20 +182,14 @@ export const generateSummary = async (text) => {
 
         const response = await callGeminiApi(text, prompt);
 
-        // Extract the summary text from the response
         const summary = response.candidates[0].content.parts[0].text.trim();
         return summary;
     } catch (error) {
-        console.error('Error generating summary:', error);
         return 'Error generating summary.';
     }
 };
 
-/**
- * Generate word cloud data using Gemini API
- * @param {string} text - The text to analyze
- * @returns {Promise<Array>} - Array of word cloud items with text, value, and color
- */
+
 export const generateWordCloud = async (text) => {
     if (!text || text.trim().length < 20) return [];
 
@@ -247,10 +202,8 @@ export const generateWordCloud = async (text) => {
 
         const response = await callGeminiApi(text, prompt);
 
-        // Parse the JSON from the response text
         const responseText = response.candidates[0].content.parts[0].text;
 
-        // Extract JSON array from the response
         const jsonMatch = responseText.match(/\[[\s\S]*\]/);
         if (!jsonMatch) {
             return [];
@@ -259,7 +212,6 @@ export const generateWordCloud = async (text) => {
         try {
             const words = JSON.parse(jsonMatch[0]);
 
-            // Generate colors based on entity type
             const typeColors = {
                 PERSON: '#4299e1',      // blue
                 LOCATION: '#48bb78',    // green
@@ -271,41 +223,30 @@ export const generateWordCloud = async (text) => {
                 OTHER: '#a0aec0',       // gray
             };
 
-            // Map to the expected format with colors
             return words.map(word => ({
                 text: word.text,
                 value: word.value,
                 color: typeColors[word.type] || typeColors.OTHER,
             })).slice(0, 25);
         } catch (parseError) {
-            console.error('Error parsing word cloud JSON:', parseError);
             return [];
         }
     } catch (error) {
-        console.error('Error generating word cloud:', error);
         return [];
     }
 };
 
-/**
- * Find related notes based on content similarity using Gemini API
- * @param {string} currentNoteText - The text of the current note
- * @param {Array} allNotes - Array of all notes to compare against
- * @returns {Promise<Array>} - Array of related note IDs with similarity score
- */
 export const findRelatedNotes = async (currentNoteText, allNotes) => {
     if (!currentNoteText || !allNotes || allNotes.length === 0) return [];
 
     try {
-        // If there are only a few notes, we can simply analyze each one against the current note
+
         if (allNotes.length <= 5) {
             const results = [];
 
             for (const note of allNotes) {
-                // Skip comparing to self
                 if (note.content === currentNoteText) continue;
 
-                // Extract plain text
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = note.content;
                 const noteText = tempDiv.textContent || tempDiv.innerText;
@@ -316,13 +257,11 @@ export const findRelatedNotes = async (currentNoteText, allNotes) => {
                 Consider themes, subjects, concepts, and tone. Return ONLY a JSON object in this format: 
                 {"similarity": 0.75, "reason": "brief explanation of why"}`;
 
-                // Combine both texts with clear separation
                 const combinedText = `PASSAGE 1:\n${currentNoteText}\n\nPASSAGE 2:\n${noteText}`;
 
                 const response = await callGeminiApi(combinedText, prompt);
                 const responseText = response.candidates[0].content.parts[0].text;
 
-                // Extract the JSON object
                 const jsonMatch = responseText.match(/{[\s\S]*}/);
                 if (jsonMatch) {
                     try {
