@@ -1,0 +1,77 @@
+/* Base styles */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* Set base font family */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+  height: 100%;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(155, 155, 155, 0.7);
+}
+
+/* Transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Editor-specific styles */
+[contenteditable] {
+  outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+/* Insights panel styles */
+.insights-container {
+  max-height: 300px;
+  height : 100%;
+  transition: max-height 0.5s ease-in-out;
+}
+
+.insights-container.collapsed {
+  max-height: 45px;
+
+}
+
+/* Highlighted terms */
+.term-highlight {
+  border-bottom: 2px solid #8b5cf6;
+  cursor: help;
+}
+
+/* Grammar error */
+.grammar-error {
+  border-bottom: 2px wavy #ef4444;
+  cursor: help;
+}
+
+/* Password strength meter */
+.password-meter {
+  height: 4px;
+  border-radius: 2px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
