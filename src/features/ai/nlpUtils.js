@@ -130,10 +130,15 @@ export const extractKeyTerms = async (text) => {
     if (!text || text.trim().length < 10) return [];
 
     try {
-        const prompt = `Extract the 10 most important key terms from the following text. 
-        For each term, determine its type (person, location, organization, concept, etc.) and provide a brief definition.
-        Return the result as a JSON array with objects containing: "term" (the term itself), "type" (lowercase category), 
-        "definition" (brief description), and "salience" (importance score from 0.0 to 1.0).
+        const prompt = `Extract only the 5-8 most significant and uncommon key terms from the following text. 
+        Focus on specialized, technical or domain-specific terms that would benefit from a definition.
+        Avoid common words, general concepts, or basic terms that most readers would already know.
+        For each term, determine its type (person, location, organization, concept, technology, etc.) and provide a brief definition.
+        Return the result as a JSON array with objects containing: 
+        - "term" (the exact term as it appears in the text, preserve original case)
+        - "type" (lowercase category)
+        - "definition" (concise 1-sentence description without quotes that might break JSON)
+        - "salience" (importance score from 0.0 to 1.0)
         Format: [{"term": "example", "type": "concept", "definition": "brief definition", "salience": 0.8}, ...]`;
 
         const response = await callGeminiApi(text, prompt);

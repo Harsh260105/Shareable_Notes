@@ -8,10 +8,12 @@ import {
   MdDeleteOutline,
   MdClose,
   MdDownload,
+  MdOutlineMenuBook,
 } from "react-icons/md";
 import RichTextEditor from "../../editor/RichTextEditor";
 import { updateNote, deleteNote } from "../slices/notesSlice";
 import { extractKeyTerms, checkGrammar } from "../../ai/nlpUtils";
+import { processTextWithTermHighlighting } from "../../ai/insightUtils";
 import {
   encryptContent,
   decryptContent,
@@ -37,6 +39,7 @@ const NoteEditor = ({ noteId, onClose }) => {
   const [keyTerms, setKeyTerms] = useState([]);
   const [grammarErrors, setGrammarErrors] = useState([]);
   const [isHoveringTerm, setIsHoveringTerm] = useState(null);
+  const [isGlossaryEnabled, setIsGlossaryEnabled] = useState(true);
   // Load note data
   useEffect(() => {
     if (note) {
@@ -66,7 +69,6 @@ const NoteEditor = ({ noteId, onClose }) => {
       setIsEncrypted(note.isEncrypted);
     }
   }, [note, isEncrypted]);
-
   // Process content with NLP
   useEffect(() => {
     if (!content || isEncrypted) {
@@ -79,19 +81,61 @@ const NoteEditor = ({ noteId, onClose }) => {
     const textContent = content.replace(/<[^>]*>/g, " ");
 
     // Process with small delay to avoid excessive processing
-    const processTimeout = setTimeout(() => {
-      // Extract key terms
-      const terms = extractKeyTerms(textContent);
-      setKeyTerms(terms);
+    const processTimeout = setTimeout(async () => {
+      try {
+        // Extract key terms asynchronously
+        const terms = await extractKeyTerms(textContent);
+        setKeyTerms(terms);
 
-      // Check grammar
-      const errors = checkGrammar(textContent);
-      setGrammarErrors(errors);
+        // Check grammar asynchronously
+        const errors = await checkGrammar(textContent);
+        setGrammarErrors(errors);
+      } catch (error) {
+        console.error("Error processing content with NLP:", error);
+      }
     }, 1000);
 
     return () => clearTimeout(processTimeout);
-  }, [content, isEncrypted]);
+  }, [content, isEncrypted]); // Auto-highlight key terms in content
+  useEffect(() => {
+    if (!content || isEncrypted || keyTerms.length === 0) return;
 
+    // If glossary is disabled, don't process highlighting
+    if (!isGlossaryEnabled) return;
+
+    // Skip if content already contains term highlights to prevent infinite loops
+    if (content.includes('class="term-highlight"')) return;
+
+    const processContentWithHighlights = async () => {
+      try {
+        const highlightedContent = await processTextWithTermHighlighting(
+          content
+        );
+
+        // Only update if there's a difference to avoid infinite loop
+        if (highlightedContent !== content) {
+          // Update the content with highlighted terms
+          setContent(highlightedContent);
+
+          // Update the note in Redux to save the highlighted content
+          dispatch(
+            updateNote(noteId, {
+              content: highlightedContent,
+            })
+          );
+        }
+      } catch (error) {
+        console.error("Error highlighting terms:", error);
+      }
+    };
+
+    // Use a debounce to avoid processing too frequently
+    const debounceTimeout = setTimeout(() => {
+      processContentWithHighlights();
+    }, 1500);
+
+    return () => clearTimeout(debounceTimeout);
+  }, [keyTerms, isEncrypted, isGlossaryEnabled, content, noteId, dispatch]);
   // Auto-save
   useEffect(() => {
     if (!note) return;
@@ -371,6 +415,163 @@ const NoteEditor = ({ noteId, onClose }) => {
       alert("There was an error exporting your note. Please try again.");
     }
   };
+  // Handle term highlight hover events
+  const handleTermMouseEnter = (event) => {
+    if (!isGlossaryEnabled) return;
+
+    const target = event.currentTarget;
+    const termType = target.getAttribute("data-term-type");
+    const termDefinition = target.getAttribute("data-term-definition");
+    const termText = target.textContent;
+
+    // Get position for tooltip
+    const rect = target.getBoundingClientRect();
+
+    // Prevent excessive re-renders by checking if we're already hovering over this term
+    if (isHoveringTerm && isHoveringTerm.term === termText) return;
+
+    setIsHoveringTerm({
+      term: termText,
+      type: termType,
+      definition: termDefinition,
+      position: {
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX + rect.width / 2,
+      },
+    });
+  };
+
+  const handleTermMouseLeave = () => {
+    setIsHoveringTerm(null);
+  };
+
+  // Attach event listeners to term highlights
+  useEffect(() => {
+    if (isEncrypted || !isGlossaryEnabled) {
+      // Clear any tooltip if glossary is disabled
+      setIsHoveringTerm(null);
+      return;
+    }
+
+    // Small delay to ensure DOM is updated after content changes
+    const attachTimeout = setTimeout(() => {
+      const termElements = document.querySelectorAll(".term-highlight");
+
+      termElements.forEach((element) => {
+        element.addEventListener("mouseenter", handleTermMouseEnter);
+        element.addEventListener("mouseleave", handleTermMouseLeave);
+      });
+    }, 200);
+
+    return () => {
+      clearTimeout(attachTimeout);
+      // Clean up existing listeners when component unmounts or content changes
+      const termElements = document.querySelectorAll(".term-highlight");
+      termElements.forEach((element) => {
+        element.removeEventListener("mouseenter", handleTermMouseEnter);
+        element.removeEventListener("mouseleave", handleTermMouseLeave);
+      });
+    };
+  }, [
+    content,
+    isEncrypted,
+    isGlossaryEnabled,
+    handleTermMouseEnter,
+    handleTermMouseLeave,
+  ]);
+
+  // Term definition tooltip component
+  const TermTooltip = () => {
+    if (!isHoveringTerm) return null;
+
+    return (
+      <div
+        className="term-tooltip"
+        style={{
+          position: "absolute",
+          top: `${isHoveringTerm.position.top}px`,
+          left: `${isHoveringTerm.position.left}px`,
+          transform: "translateX(-50%)",
+          zIndex: 1000,
+        }}
+      >
+        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-w-xs">
+          <div className="font-medium text-blue-600 dark:text-blue-400 mb-1 flex items-center">
+            {isHoveringTerm.term}
+            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs rounded">
+              {isHoveringTerm.type}
+            </span>
+          </div>
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            {isHoveringTerm.definition}
+          </div>
+        </div>
+        <div
+          className="tooltip-arrow"
+          style={{
+            position: "absolute",
+            top: "-8px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "16px",
+            height: "8px",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: "4px",
+              left: "0",
+              width: "16px",
+              height: "16px",
+              transform: "rotate(45deg)",
+              backgroundColor: "white",
+              borderLeft: "1px solid #e5e7eb",
+              borderTop: "1px solid #e5e7eb",
+            }}
+            className="dark:bg-gray-800 dark:border-gray-700"
+          />
+        </div>
+      </div>
+    );
+  };
+  // Handle glossary toggle - remove highlights when disabled
+  useEffect(() => {
+    if (!isGlossaryEnabled && content && !isEncrypted) {
+      // Don't process if content doesn't have any highlights
+      if (!content.includes('class="term-highlight"')) return;
+
+      // Create a new temporary element to parse and clean the HTML safely
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = content;
+
+      // Find all highlight spans and replace with their text content
+      const highlightSpans = tempDiv.querySelectorAll(".term-highlight");
+      highlightSpans.forEach((span) => {
+        const textNode = document.createTextNode(span.textContent);
+        span.parentNode.replaceChild(textNode, span);
+      });
+
+      // Get the cleaned HTML
+      const cleanContent = tempDiv.innerHTML;
+
+      // Only update if there's a difference to avoid infinite loops
+      if (cleanContent !== content) {
+        // Update the content without highlights
+        setContent(cleanContent);
+
+        // Update the note in Redux with small delay to avoid race conditions
+        setTimeout(() => {
+          dispatch(
+            updateNote(noteId, {
+              content: cleanContent,
+            })
+          );
+        }, 50);
+      }
+    }
+  }, [isGlossaryEnabled, content, isEncrypted, noteId, dispatch]);
 
   if (!note) {
     return <div>Note not found</div>;
@@ -436,6 +637,25 @@ const NoteEditor = ({ noteId, onClose }) => {
           </button>
         </div>{" "}
         <div className="flex items-center gap-3">
+          {/* Glossary toggle button - only show when not encrypted */}
+          {!isEncrypted && (
+            <button
+              type="button"
+              onClick={() => setIsGlossaryEnabled(!isGlossaryEnabled)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors duration-200 ${
+                isGlossaryEnabled
+                  ? "bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50"
+                  : "bg-gray-300 text-gray-600 hover:bg-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              }`}
+              title={
+                isGlossaryEnabled ? "Turn off glossary" : "Turn on glossary"
+              }
+            >
+              <MdOutlineMenuBook className="text-lg" />
+              <span>Glossary {isGlossaryEnabled ? "On" : "Off"}</span>
+            </button>
+          )}
+
           {/* Save/Export button */}
           <button
             type="button"
@@ -557,16 +777,20 @@ const NoteEditor = ({ noteId, onClose }) => {
             </div>
           </div>
         ) : (
-          <RichTextEditor
-            initialContent={content}
-            onChange={setContent}
-            onBlur={handleBlur}
-            placeholder={
-              !content && note.title === "Untitled Note"
-                ? "Write your text here"
-                : "Write your note..."
-            }
-          />
+          <>
+            <RichTextEditor
+              initialContent={content}
+              onChange={setContent}
+              onBlur={handleBlur}
+              placeholder={
+                !content && note.title === "Untitled Note"
+                  ? "Write your text here"
+                  : "Write your note..."
+              }
+            />
+            {/* Term definition tooltip */}
+            {isHoveringTerm && <TermTooltip />}
+          </>
         )}{" "}
       </div>{" "}
       {/* NLP Insights */}
@@ -666,6 +890,7 @@ const NoteEditor = ({ noteId, onClose }) => {
           </div>
         </div>
       )}
+      <TermTooltip />
     </div>
   );
 };

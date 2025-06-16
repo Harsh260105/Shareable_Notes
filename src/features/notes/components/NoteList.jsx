@@ -92,7 +92,7 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
     if (!content) return "";
     // Remove HTML tags and decode entities
     const plainText = content.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ");
-    const maxLength = 25;
+    const maxLength = 45;
     return plainText.length > maxLength
       ? `${plainText.substring(0, maxLength)}...`
       : plainText;

@@ -336,20 +336,20 @@ const RichTextEditor = ({
         />
       </div>
       {/* Status bar */}
-      
-      <div className="rte-status-bar">
-        <span className="rte-status-info">
-          Characters:{" "} {editorContent.replace(/<[^>]*>/g, "").length} | 
-          Words:{" "}
-          {
-            editorContent
-              .replace(/<[^>]*>/g, "")
-              .split(/\s+/)
-              .filter((word) => word.length > 0).length
-          }
-        </span>
-      </div>
-      
+      {showAdvancedOptions && (
+        <div className="rte-status-bar ml-1">
+          <span className="rte-status-info">
+            {isHtmlView ? "HTML Mode" : "Visual Mode"} | Characters:{" "}
+            {editorContent.replace(/<[^>]*>/g, "").length} | Words:{" "}
+            {
+              editorContent
+                .replace(/<[^>]*>/g, "")
+                .split(/\s+/)
+                .filter((word) => word.length > 0).length
+            }
+          </span>
+        </div>
+      )}
     </div>
   );
 };

@@ -299,18 +299,3 @@
 .rte-editor * {
   font-size: inherit;
 }
-
-/* Encryption Modal - Ensure no editor elements appear here */
-.encryption-modal-container {
-  isolation: isolate;
-  z-index: 1000;
-}
-
-.encryption-modal-container .rte-toolbar,
-.encryption-modal-container .rte-select,
-.encryption-modal-container select,
-.encryption-modal-container [role="listbox"],
-.encryption-modal-container .dropdown {
-  display: none !important;
-  visibility: hidden !important;
-}
