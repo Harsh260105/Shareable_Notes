@@ -179,6 +179,15 @@ function App() {
                   <p className="text-gray-500">
                     Select a note from the list or create a new one.
                   </p>
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-sm text-gray-400">Shareable Notes</p>
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">
+                      Made by Harsh Patel
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      © {new Date().getFullYear()}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
