@@ -21,9 +21,7 @@ const RichTextEditor = ({
   showAdvancedOptions = false,
   disabled = false,
 }) => {
-  const [isHtmlView, setIsHtmlView] = useState(false);
-  const htmlTextareaRef = useRef(null);
-  const { isDarkMode } = useTheme();
+  
   const effectiveContent = content !== undefined ? content : initialContent;
 
   const fontSizes = useMemo(
@@ -41,6 +39,7 @@ const RichTextEditor = ({
     ],
     []
   );
+
   const {
     editorRef,
     content: editorContent,
@@ -57,11 +56,12 @@ const RichTextEditor = ({
     restoreSelection,
     enforceWordWrap,
   } = useRichTextEditor(effectiveContent, onChange);
+  
   useEffect(() => {
-    if (editorRef.current && !isHtmlView) {
+    if (editorRef.current) {
       enforceWordWrap();
     }
-  }, [enforceWordWrap, isHtmlView, effectiveContent]);
+  }, [enforceWordWrap, effectiveContent]);
 
   const ensureEditorFocus = useCallback(() => {
     if (editorRef.current && document.activeElement !== editorRef.current) {
@@ -71,7 +71,7 @@ const RichTextEditor = ({
 
   const handleFormatClick = useCallback(
     (command, value = null) => {
-      if (disabled || isHtmlView) return;
+      if (disabled) return;
 
       if (editorRef.current) {
         ensureEditorFocus();
@@ -79,13 +79,15 @@ const RichTextEditor = ({
         formatText(command, value);
       }
     },
-    [disabled, isHtmlView, formatText, ensureEditorFocus]
-  ); // Handle font size change
-  const handleFontSizeChange = useCallback(
-    (e) => {
-      const fontSize = e.target.value;
+    [disabled, formatText, ensureEditorFocus]
+  ); 
+  
+  // Handle font size change
+  const handleFontSizeChange = useCallback((e) => {
+      
+    const fontSize = e.target.value;
 
-      if (fontSize && !disabled && !isHtmlView) {
+      if (fontSize && !disabled) {
         if (editorRef.current) {
           editorRef.current.focus();
         }
@@ -94,65 +96,65 @@ const RichTextEditor = ({
         formatText("fontSize", fontSize);
       }
     },
-    [disabled, isHtmlView, formatText, editorRef]
+    [disabled, formatText, editorRef]
   );
   // Handle alignment change
-  const handleAlignmentChange = useCallback(
-    (alignment) => {
-      if (!disabled && !isHtmlView) {
-        saveSelection();
+  // const handleAlignmentChange = useCallback(
+  //   (alignment) => {
+  //     if (!disabled && !isHtmlView) {
+  //       saveSelection();
 
-        handleFormatClick("align", alignment);
+  //       handleFormatClick("align", alignment);
 
-        setTimeout(() => {
-          ensureEditorFocus();
-          restoreSelection();
-        }, 10);
-      }
-    },
-    [
-      disabled,
-      isHtmlView,
-      handleFormatClick,
-      saveSelection,
-      ensureEditorFocus,
-      restoreSelection,
-    ]
-  );
+  //       setTimeout(() => {
+  //         ensureEditorFocus();
+  //         restoreSelection();
+  //       }, 10);
+  //     }
+  //   },
+  //   [
+  //     disabled,
+  //     isHtmlView,
+  //     handleFormatClick,
+  //     saveSelection,
+  //     ensureEditorFocus,
+  //     restoreSelection,
+  //   ]
+  // );
 
-  const toggleView = useCallback(() => {
-    if (disabled) return;
-    if (isHtmlView) {
-      const htmlContent = htmlTextareaRef.current?.value || editorContent;
-      if (editorRef.current) {
-        editorRef.current.innerHTML = htmlContent;
-        onChange(htmlContent);
-        enforceWordWrap();
-      }
-      setIsHtmlView(false);
-      setTimeout(() => {
-        if (editorRef.current) {
-          editorRef.current.focus();
-        }
-      }, 0);
-    } else {
-      setIsHtmlView(true);
-      setTimeout(() => {
-        if (htmlTextareaRef.current) {
-          htmlTextareaRef.current.focus();
-        }
-      }, 0);
-    }
-  }, [disabled, isHtmlView, editorContent, onChange, enforceWordWrap]);
+  // const toggleView = useCallback(() => {
+  //   if (disabled) return;
+  //   if (isHtmlView) {
+  //     const htmlContent = htmlTextareaRef.current?.value || editorContent;
+  //     if (editorRef.current) {
+  //       editorRef.current.innerHTML = htmlContent;
+  //       onChange(htmlContent);
+  //       enforceWordWrap();
+  //     }
+  //     setIsHtmlView(false);
+  //     setTimeout(() => {
+  //       if (editorRef.current) {
+  //         editorRef.current.focus();
+  //       }
+  //     }, 0);
+  //   } else {
+  //     setIsHtmlView(true);
+  //     setTimeout(() => {
+  //       if (htmlTextareaRef.current) {
+  //         htmlTextareaRef.current.focus();
+  //       }
+  //     }, 0);
+  //   }
+  // }, [disabled, isHtmlView, editorContent, onChange, enforceWordWrap]);
 
   // Handle HTML textarea change
-  const handleHtmlChange = useCallback(
-    (e) => {
-      const newContent = e.target.value;
-      onChange(newContent);
-    },
-    [onChange]
-  );
+  // const handleHtmlChange = useCallback(
+  //   (e) => {
+  //     const newContent = e.target.value;
+  //     onChange(newContent);
+  //   },
+  //   [onChange]
+  // );
 
   const handleClearContent = useCallback(() => {
     clearContent();
@@ -176,7 +178,7 @@ const RichTextEditor = ({
         e.preventDefault();
       }}
       title={title}
-      disabled={disabled || isHtmlView}
+      disabled={disabled}
       aria-pressed={isActive}
     >
       {icon || children}
@@ -217,7 +219,7 @@ const RichTextEditor = ({
             className="rte-select"
             value={activeFormats.fontSize || ""}
             onChange={handleFontSizeChange}
-            disabled={disabled || isHtmlView}
+            disabled={disabled}
           >
             <option value="" disabled>
               Size
@@ -284,12 +286,15 @@ const RichTextEditor = ({
             onClick={() => handleClearContent()}
             onMouseDown={(e) => e.preventDefault()}
             title="Clear All Content"
-            disabled={disabled || isHtmlView}
+            disabled={disabled}
           >
             🗑️
           </button>
         </div>
-      </div>{" "}
+      </div>
+      
+      {" "}
+      
       {/* Editor container */}
       <div className="rte-editor-container" style={{ overflow: "hidden" }}>
         <div
@@ -314,21 +319,20 @@ const RichTextEditor = ({
           aria-label="Rich text editor"
         />
       </div>
+
       {/* Status bar */}
-      {showAdvancedOptions && (
-        <div className="rte-status-bar ml-1">
-          <span className="rte-status-info">
-            {isHtmlView ? "HTML Mode" : "Visual Mode"} | Characters:{" "}
-            {editorContent.replace(/<[^>]*>/g, "").length} | Words:{" "}
-            {
-              editorContent
-                .replace(/<[^>]*>/g, "")
-                .split(/\s+/)
-                .filter((word) => word.length > 0).length
-            }
-          </span>
-        </div>
-      )}
+      <div className="rte-status-bar">
+        <span className="rte-status-info">
+          Characters:{" "}
+          {editorContent.replace(/<[^>]*>/g, "").length} | Words:{" "}
+          {
+            editorContent
+              .replace(/<[^>]*>/g, "")
+              .split(/\s+/)
+              .filter((word) => word.length > 0).length
+          }
+        </span>
+      </div>
     </div>
   );
 };

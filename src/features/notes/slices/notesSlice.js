@@ -64,7 +64,9 @@ export const notesSlice = createSlice({
                     },
                 };
             },
-        }, updateNote: {
+        }, 
+        
+        updateNote: {
             reducer: (state, action) => {
                 const { id, title, content, isPinned, isEncrypted } = action.payload;
                 const note = state.notes.find((note) => note.id === id);
@@ -124,7 +126,9 @@ export const notesSlice = createSlice({
                     },
                 };
             },
-        }, deleteNote: {
+        }, 
+        
+        deleteNote: {
             reducer: (state, action) => {
                 const { id } = action.payload;
                 const note = state.notes.find((note) => note.id === id);
@@ -161,7 +165,9 @@ export const notesSlice = createSlice({
             if (!note) return;
 
             note.isTrashed = false;
-        }, permanentlyDeleteNote: (state, action) => {
+        }, 
+        
+        permanentlyDeleteNote: (state, action) => {
             const { id } = action.payload;
 
             // Check if the note is encrypted before permanently deleting

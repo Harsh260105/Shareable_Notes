@@ -106,7 +106,7 @@ export const extractKeyTerms = async (text) => {
     if (!text || text.trim().length < 10) return [];
 
     try {
-        const prompt = `Extract only the 5-8 most significant and uncommon key terms from the following text. 
+        const prompt = `Extract only the 8-10 most significant and uncommon key terms from the following text. 
         Focus on specialized, technical or domain-specific terms that would benefit from a definition.
         Avoid common words, general concepts, or basic terms that most readers would already know.
         For each term, determine its type (person, location, organization, concept, technology, etc.) and provide a brief definition.

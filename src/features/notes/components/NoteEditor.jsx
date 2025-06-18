@@ -58,6 +58,7 @@ const NoteEditor = ({ noteId, onClose }) => {
       setIsEncrypted(note.isEncrypted);
     }
   }, [note, isEncrypted]);
+
   // Process content with NLP
   useEffect(() => {
     if (!content || isEncrypted) {
@@ -85,7 +86,9 @@ const NoteEditor = ({ noteId, onClose }) => {
     }, 1000);
 
     return () => clearTimeout(processTimeout);
-  }, [content, isEncrypted]); // Auto-highlight key terms in content
+  }, [content, isEncrypted]); 
+  
+  // Auto-highlight key terms in content
   useEffect(() => {
     if (!content || isEncrypted || keyTerms.length === 0) return;
 
@@ -121,6 +124,7 @@ const NoteEditor = ({ noteId, onClose }) => {
 
     return () => clearTimeout(debounceTimeout);
   }, [keyTerms, isEncrypted, isGlossaryEnabled, content, noteId, dispatch]);
+
   // Auto-save
   useEffect(() => {
     if (!note) return;
@@ -137,6 +141,7 @@ const NoteEditor = ({ noteId, onClose }) => {
 
     return () => clearTimeout(autoSaveTimeout);
   }, [title, content, isPinned, note, noteId, dispatch]); // Save on blur
+
   const handleBlur = () => {
     if (note) {
       if (
@@ -171,6 +176,7 @@ const NoteEditor = ({ noteId, onClose }) => {
       console.error("Cannot delete note: No noteId provided");
     }
   };
+
   const handleEncrypt = () => {
     if (password !== confirmPassword) {
       alert("Passwords do not match");
@@ -276,7 +282,9 @@ const NoteEditor = ({ noteId, onClose }) => {
     if (passwordStrength >= 75) {
       color = "bg-green-500";
       label = "Strong";
-    } else if (passwordStrength >= 50) {
+    } 
+
+    else if (passwordStrength >= 50) {
       color = "bg-yellow-500";
       label = "Moderate";
     }
@@ -771,6 +779,15 @@ const NoteEditor = ({ noteId, onClose }) => {
         </div>
       )}
       <TermTooltip />
+      
+      {/* Signature - only shown when not in encryption dialog */}
+      {/* {!showEncryptModal && (
+        <div className="absolute bottom-3 right-4.5 text-xs text-gray-400 opacity-70 hover:opacity-100 transition-opacity">
+          Powered by{" "}
+          <span className="text-blue-500 dark:text-blue-400">Gemini</span>
+        </div>
+      )} */}
+      
     </div>
   );
 };

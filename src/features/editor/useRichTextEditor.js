@@ -13,7 +13,9 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
     });
 
     // Functions to save and restore selection state
-    const savedSelectionRef = useRef(null); const saveSelection = useCallback(() => {
+    const savedSelectionRef = useRef(null); 
+    
+    const saveSelection = useCallback(() => {
         if (!editorRef.current) return;
 
         if (window.getSelection) {
@@ -55,7 +57,9 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
             node.style.overflowWrap = 'break-word';
             node.style.maxWidth = '100%';
         });
-    }, []);// Check current formatting state at cursor position
+    }, []);
+    
+    // Check current formatting state at cursor position
     const updateFormatState = useCallback(() => {
         if (!editorRef.current) return;
 
@@ -138,7 +142,9 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
         } catch (error) {
             console.error(`Error applying ${styleName}:`, error);
         }
-    }, [editorRef]);    // Simple format function using document.execCommand (like the guide)
+    }, [editorRef]);    
+    
+    // Simple format function using document.execCommand (like the guide)
     const formatText = useCallback((command, value = null) => {
         if (!editorRef.current) return;
 
@@ -216,8 +222,9 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
         if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
             setTimeout(updateFormatState, 0);
         }
-    }, [updateFormatState]);    // Handle mouse clicks to update format state
-
+    }, [updateFormatState]);    
+    
+    // Handle mouse clicks to update format state
     const handleClick = useCallback(() => {
         setTimeout(updateFormatState, 0);
     }, [updateFormatState]);
@@ -232,15 +239,19 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
                 updateFormatState();
             }
         }
-    }, [updateFormatState]);    // Set up selection change listener
-
+    }, [updateFormatState]);    
+    
+    // Set up selection change listener
     useEffect(() => {
         document.addEventListener('selectionchange', handleSelectionChange);
         return () => {
             document.removeEventListener('selectionchange', handleSelectionChange);
         };
-    }, [handleSelectionChange]);    // Composition handlers for IME support
+    }, [handleSelectionChange]);    
+    
+    // Composition handlers for IME support
     const handleCompositionStart = useCallback(() => { }, []);
+    
     const handleCompositionEnd = useCallback(() => {
         if (editorRef.current) {
             const newContent = editorRef.current.innerHTML;
@@ -249,7 +260,9 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
                 contentChangeCallbackRef.current(newContent);
             }
         }
-    }, []);    // Handle paste events
+    }, []);    
+    
+    // Handle paste events
     const handlePaste = useCallback((e) => {
         // Get pasted text
         e.preventDefault();
@@ -275,7 +288,8 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
 
             // Update content
             const newContent = editorRef.current.innerHTML;
-            setContent(newContent); if (contentChangeCallbackRef.current) {
+            setContent(newContent); 
+            if (contentChangeCallbackRef.current) {
                 contentChangeCallbackRef.current(newContent);
             }
         }
@@ -295,7 +309,9 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
     // Update callback ref
     useEffect(() => {
         contentChangeCallbackRef.current = onContentChange;
-    }, [onContentChange]);    // Set initial content and update on content changes
+    }, [onContentChange]);    
+    
+    // Set initial content and update on content changes
     useEffect(() => {
         if (editorRef.current && initialContent !== undefined) {
             // Only update if the content has actually changed to avoid cursor issues
@@ -328,7 +344,9 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
         if (editorRef.current && document.activeElement !== editorRef.current) {
             editorRef.current.focus();
         }
-    }, []); return {
+    }, []); 
+    
+    return {
         editorRef,
         content,
         activeFormats,
