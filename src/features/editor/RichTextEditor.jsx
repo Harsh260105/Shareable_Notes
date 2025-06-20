@@ -98,6 +98,7 @@ const RichTextEditor = ({
     },
     [disabled, formatText, editorRef]
   );
+  
   // Handle alignment change
   // const handleAlignmentChange = useCallback(
   //   (alignment) => {
@@ -214,7 +215,7 @@ const RichTextEditor = ({
           />
         </div>
         {/* Font size group */}{" "}
-        <div className="rte-toolbar-group">
+        <div className="rte-toolbar-group z-0">
           <select
             className="rte-select"
             value={activeFormats.fontSize || ""}

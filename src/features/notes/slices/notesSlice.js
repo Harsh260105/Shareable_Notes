@@ -21,7 +21,9 @@ export const notesSlice = createSlice({
     reducers: {
         createNote: {
             reducer: (state, action) => {
-                const { id, title, content, created, lastModified, isPinned, isEncrypted, versions } = action.payload;                // Handle pinned notes limit (max 5)
+                const { id, title, content, created, lastModified, isPinned, isEncrypted, versions } = action.payload;                
+                
+                // Handle pinned notes limit (max 5)
                 if (isPinned && state.pinnedNotes && state.pinnedNotes.length >= 5) {
                     return;
                 }

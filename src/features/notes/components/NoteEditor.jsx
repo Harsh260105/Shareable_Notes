@@ -40,7 +40,7 @@ const NoteEditor = ({ noteId, onClose }) => {
   const [keyTerms, setKeyTerms] = useState([]);
   const [grammarErrors, setGrammarErrors] = useState([]);
   const [isHoveringTerm, setIsHoveringTerm] = useState(null);
-  const [isGlossaryEnabled, setIsGlossaryEnabled] = useState(true);
+  const [isGlossaryEnabled, setIsGlossaryEnabled] = useState(false);
 
   // Load note data
   useEffect(() => {
@@ -666,7 +666,7 @@ const NoteEditor = ({ noteId, onClose }) => {
           </div>
         ) : (
           <>
-            {" "}
+            {"Text Editor"}
             <RichTextEditor
               initialContent={content}
               onChange={setContent}

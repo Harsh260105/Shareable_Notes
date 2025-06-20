@@ -70,7 +70,8 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
         // Try to detect font size
         if (selection && selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
-            if (range.commonAncestorContainer.nodeType === 3) { // Text node
+            if (range.commonAncestorContainer.nodeType === 3) { 
+                // Text node
                 // Get the parent element of the text node
                 const parentElement = range.commonAncestorContainer.parentElement;
                 if (parentElement) {
@@ -93,7 +94,9 @@ export const useRichTextEditor = (initialContent = '', onContentChange) => {
                         document.queryCommandState('justifyLeft') ? 'left' : 'left',
             fontSize: currentFontSize
         });
-    }, []);    // Helper function to apply inline styles at cursor or selection
+    }, []);    
+    
+    // Helper function to apply inline styles at cursor or selection
     const applyInlineStyle = useCallback((styleName, styleValue) => {
         if (!editorRef.current) return;
 

@@ -9,6 +9,7 @@ import { useTheme } from "./shared/hooks/useTheme";
 import {
   updateNote,
   selectAllNotes,
+  selectPinnedNotes,
   fixStateIntegrity,
 } from "./features/notes/slices/notesSlice";
 import "./App.css";
@@ -17,10 +18,7 @@ const NotesSync = () => {
   const dispatch = useDispatch();
   const allNotes = useSelector(selectAllNotes);
 
-  const pinnedNotes = useSelector((state) => {
-    const pinnedIds = state.notes.pinnedNotes;
-    return Array.isArray(pinnedIds) ? pinnedIds : [];
-  });
+  const pinnedNotes = useSelector(selectPinnedNotes);
 
   useEffect(() => {
     try {
