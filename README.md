@@ -44,8 +44,6 @@ Watch a walkthrough of the app here: [Loom Demo Video](https://www.loom.com/shar
 
 ## 🚀 Demo
 
-> **Add a screenshot or GIF of your app here**
->
 > ![Demo Screenshot](public/demo-screenshot.png)
 
 ---
