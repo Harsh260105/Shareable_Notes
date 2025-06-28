@@ -42,12 +42,6 @@ Watch a walkthrough of the app here: [Loom Demo Video](https://www.loom.com/shar
 - Built with best practices for maintainability and scalability
 - Fast performance with Vite and TailwindCSS
 
-## 🚀 Demo
-
-> ![Demo](https://www.loom.com/share/a1e1274a0a28441cb46bf50957b9742e?sid=6accea9f-5e45-49b3-891f-55e5dd50e2eb)
-
----
-
 ## 🛠️ Technologies Used
 
 - [React](https://react.dev/) with Redux and [redux-persist](https://github.com/rt2zz/redux-persist) for state management and persistence
