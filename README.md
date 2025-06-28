@@ -1,13 +1,17 @@
 # Shareable Notes
 
 <!-- Project Logo -->
-<p align="center">
+<p align="left">
   <img src="public/notes-icon.svg" alt="Shareable Notes Logo" width="120" />
 </p>
 
 A modern, AI-powered note-taking application with advanced insights using Google Gemini API.
 
-> **This is a robustmini project, built in just about a week, to showcase best practices in React, Redux (with persistent storage), and deep AI integration.**
+> **This is a robust mini project, built in just about a week, to showcase best practices in React, Redux (with persistent storage), and deep AI integration.**
+>
+> ## 💪 Technical Achievement
+>
+> **The rich text editor is built ENTIRELY FROM SCRATCH—no Quill, no TinyMCE, no Draft.js, no ready-made editors whatsoever. Just pure JavaScript logic and DOM manipulation. While this may not look like much at first glance, building a fully functional rich text editor from the ground up represents significant technical effort and deep understanding of web fundamentals.**
 
 ---
 
@@ -23,7 +27,7 @@ Watch a walkthrough of the app here: [Loom Demo Video](https://www.loom.com/shar
 
 ## ✨ Features
 
-- Create, edit, and organize notes with a rich text editor
+- **CUSTOM-BUILT RICH TEXT EDITOR FROM SCRATCH** - Unlike most note apps that use libraries like Quill or Draft.js, this editor is built entirely with vanilla JavaScript and custom DOM manipulation
 - Pin important notes to the top of your list
 - **Heavily AI-powered insights:**
   - Key term extraction
@@ -49,6 +53,7 @@ Watch a walkthrough of the app here: [Loom Demo Video](https://www.loom.com/shar
 ## 🛠️ Technologies Used
 
 - [React](https://react.dev/) with Redux and [redux-persist](https://github.com/rt2zz/redux-persist) for state management and persistence
+- **100% CUSTOM JavaScript implementation for the rich text editor** - No Quill, no Draft.js, no TinyMCE, or any other text editor library was used. This demonstrates deep understanding of DOM manipulation and browser APIs
 - [Vite](https://vitejs.dev/) for fast development and building
 - [Google Gemini API](https://ai.google.dev/) for AI text analysis
 - [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) for local storage
@@ -80,6 +85,22 @@ Watch a walkthrough of the app here: [Loom Demo Video](https://www.loom.com/shar
 
 ---
 
+## 🔧 Technical Details
+
+### Custom Rich Text Editor
+
+The centerpiece of this project is the entirely custom-built rich text editor. While it would have been much easier to use an existing solution like Quill.js, Draft.js, or TinyMCE, building one from scratch presented a significant technical challenge that demonstrates deep understanding of:
+
+- DOM manipulation and content-editable behavior
+- Selection APIs and range manipulation
+- Event handling for complex user interactions
+- State management for undo/redo functionality
+- Custom formatting commands without relying on third-party code
+
+This implementation showcases true front-end development skills by creating something most developers would simply import from a library.
+
+---
+
 ## 🔑 Environment Variables
 
 - `VITE_GOOGLE_AI_API_KEY`: Your Google Gemini API key for accessing AI features
@@ -101,7 +122,7 @@ This application uses Google Gemini API to provide the following natural languag
 ## 📄 Usage
 
 - Create a new note using the "+" button
-- Edit notes with the rich text editor
+- Edit notes with the **from-scratch custom rich text editor** (formatting, styling, and editing all implemented with pure JavaScript)
 - Pin/unpin notes for quick access
 - Use the AI Insights panel to analyze your notes
 - Switch between dark and light themes
@@ -114,5 +135,3 @@ This application uses Google Gemini API to provide the following natural languag
 - [Vite](https://vitejs.dev/)
 - [TailwindCSS](https://tailwindcss.com/)
 - [React](https://react.dev/)
-
----
