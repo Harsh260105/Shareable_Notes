@@ -237,6 +237,7 @@ export const generateWordCloud = async (text) => {
 };
 
 export const findRelatedNotes = async (currentNoteText, allNotes) => {
+
     if (!currentNoteText || !allNotes || allNotes.length === 0) return [];
 
     try {
@@ -245,6 +246,7 @@ export const findRelatedNotes = async (currentNoteText, allNotes) => {
             const results = [];
 
             for (const note of allNotes) {
+
                 if (note.content === currentNoteText) continue;
 
                 const tempDiv = document.createElement('div');
@@ -290,7 +292,6 @@ export const findRelatedNotes = async (currentNoteText, allNotes) => {
             Then, analyze the following notes and identify the top 5 most related ones based on thematic similarity.
             Each note has an ID and content.`;
 
-            // Prepare a condensed version of all notes
             const noteDigests = allNotes.map(note => {
                 // Skip the current note or extract plain text
                 if (note.content === currentNoteText) return null;
@@ -311,11 +312,11 @@ export const findRelatedNotes = async (currentNoteText, allNotes) => {
                     title: note.title,
                     digest: digestText
                 };
+                
             }).filter(note => note !== null);
 
             if (noteDigests.length === 0) return [];
 
-            // Combine the current note with digests of all other notes
             const combinedText = `MAIN NOTE:\n${currentNoteText}\n\nOTHER NOTES:\n` +
                 noteDigests.map(note => `ID: ${note.id}\nTITLE: ${note.title}\nCONTENT: ${note.digest}`).join('\n\n');
 
@@ -325,7 +326,6 @@ export const findRelatedNotes = async (currentNoteText, allNotes) => {
             const response = await callGeminiApi(combinedText, finalPrompt);
             const responseText = response.candidates[0].content.parts[0].text;
 
-            // Extract the JSON array
             const jsonMatch = responseText.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 try {

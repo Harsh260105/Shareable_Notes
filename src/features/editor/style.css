@@ -7,6 +7,39 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Color picker specific styles */
+.color-picker-container {
+  position: relative;
+  display: inline-block;
+}
+
+.color-input {
+  opacity: 0;
+  position: absolute;
+  width: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  z-index: -1;
+}
+
+/* Color picker button styles */
+.color-picker-button {
+  position: relative;
+  display: inline-block;
+}
+
+.color-picker-button span {
+  font-weight: bold;
+  font-family: serif;
+}
+
+.color-picker-button .rte-btn.active span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px; /* Underline thickness */
+}
+
 .rte-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -72,6 +105,16 @@
 
 .rte-btn.active:hover {
   background: #2563eb;
+}
+
+/* Color button styling */
+.rte-btn span[style*="color"] {
+  font-weight: bold;
+  font-family: serif;
+}
+
+.rte-btn.active span[style*="color"] {
+  text-decoration: underline;
 }
 
 .rte-select {

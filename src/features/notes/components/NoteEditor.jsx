@@ -31,14 +31,12 @@ const NoteEditor = ({ noteId, onClose }) => {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [isPinned, setIsPinned] = useState(false);
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [showEncryptModal, setShowEncryptModal] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [keyTerms, setKeyTerms] = useState([]);
-  const [grammarErrors, setGrammarErrors] = useState([]);
   const [isHoveringTerm, setIsHoveringTerm] = useState(null);
   const [isGlossaryEnabled, setIsGlossaryEnabled] = useState(false);
 
@@ -47,7 +45,6 @@ const NoteEditor = ({ noteId, onClose }) => {
     if (note) {
       setTitle(note.title);
       setContent(note.content);
-      setIsPinned(note.isPinned);
       setIsEncrypted(note.isEncrypted);
     }
   }, [note]);
@@ -61,41 +58,35 @@ const NoteEditor = ({ noteId, onClose }) => {
 
   // Process content with NLP
   useEffect(() => {
+
     if (!content || isEncrypted) {
       setKeyTerms([]);
-      setGrammarErrors([]);
       return;
     }
 
-    // Extract text content (remove HTML tags)
     const textContent = content.replace(/<[^>]*>/g, " ");
 
-    // Process with small delay to avoid excessive processing
     const processTimeout = setTimeout(async () => {
       try {
-        // Extract key terms asynchronously
+
         const terms = await extractKeyTerms(textContent);
         setKeyTerms(terms);
 
-        // Check grammar asynchronously
-        const errors = await checkGrammar(textContent);
-        setGrammarErrors(errors);
       } catch (error) {
         console.error("Error processing content with NLP:", error);
       }
     }, 1000);
 
     return () => clearTimeout(processTimeout);
-  }, [content, isEncrypted]); 
-  
+
+  }, [content, isEncrypted]);
+
   // Auto-highlight key terms in content
   useEffect(() => {
     if (!content || isEncrypted || keyTerms.length === 0) return;
 
-    // If glossary is disabled, don't process highlighting
     if (!isGlossaryEnabled) return;
 
-    // Skip if content already contains term highlights to prevent infinite loops
     if (content.includes('class="term-highlight"')) return;
 
     const processContentWithHighlights = async () => {
@@ -130,26 +121,19 @@ const NoteEditor = ({ noteId, onClose }) => {
     if (!note) return;
 
     const autoSaveTimeout = setTimeout(() => {
-      if (
-        title !== note.title ||
-        content !== note.content ||
-        isPinned !== note.isPinned
-      ) {
-        dispatch(updateNote(noteId, { title, content, isPinned }));
+      if (title !== note.title || content !== note.content) {
+        dispatch(updateNote(noteId, { title, content }));
       }
     }, 2000); // Auto-save every 2 seconds
 
     return () => clearTimeout(autoSaveTimeout);
-  }, [title, content, isPinned, note, noteId, dispatch]); // Save on blur
+  }, [title, content, note, noteId, dispatch]); // Save on blur
 
+  // saving note on blur
   const handleBlur = () => {
     if (note) {
-      if (
-        title !== note.title ||
-        content !== note.content ||
-        isPinned !== note.isPinned
-      ) {
-        dispatch(updateNote(noteId, { title, content, isPinned }));
+      if (title !== note.title || content !== note.content) {
+        dispatch(updateNote(noteId, { title, content }));
       }
     }
   };
@@ -169,6 +153,7 @@ const NoteEditor = ({ noteId, onClose }) => {
         setTimeout(() => {
           onClose();
         }, 100);
+
       } catch (error) {
         console.error("Error deleting note:", error);
       }
@@ -282,9 +267,7 @@ const NoteEditor = ({ noteId, onClose }) => {
     if (passwordStrength >= 75) {
       color = "bg-green-500";
       label = "Strong";
-    } 
-
-    else if (passwordStrength >= 50) {
+    } else if (passwordStrength >= 50) {
       color = "bg-yellow-500";
       label = "Moderate";
     }
@@ -304,6 +287,12 @@ const NoteEditor = ({ noteId, onClose }) => {
 
   const handleExportNote = () => {
     try {
+
+      if (isEncrypted) {
+        alert("Cannot export an encrypted note in readable format. Please decrypt it first.");
+        return;
+      }
+
       const filename = `${
         title.replace(/[^a-z0-9]/gi, "_").toLowerCase() || "note"
       }.txt`;
@@ -333,6 +322,7 @@ const NoteEditor = ({ noteId, onClose }) => {
   };
 
   const handleTermMouseEnter = (event) => {
+    
     if (!isGlossaryEnabled) return;
 
     const target = event.currentTarget;
@@ -357,6 +347,17 @@ const NoteEditor = ({ noteId, onClose }) => {
 
   const handleTermMouseLeave = () => {
     setIsHoveringTerm(null);
+  };
+
+  // Handle pin toggle with explicit UI feedback
+  const handlePinToggle = () => {
+    const newPinState = !note.isPinned;
+
+    dispatch(updateNote(noteId, { isPinned: newPinState }));
+
+    setTimeout(() => {
+      const pinnedIds = store.getState().notes.pinnedNotes;
+    }, 100);
   };
 
   useEffect(() => {
@@ -392,6 +393,7 @@ const NoteEditor = ({ noteId, onClose }) => {
   ]);
 
   const TermTooltip = () => {
+
     if (!isHoveringTerm) return null;
 
     return (
@@ -448,7 +450,9 @@ const NoteEditor = ({ noteId, onClose }) => {
   };
 
   useEffect(() => {
+
     if (!isGlossaryEnabled && content && !isEncrypted) {
+
       if (!content.includes('class="term-highlight"')) return;
 
       const tempDiv = document.createElement("div");
@@ -495,29 +499,13 @@ const NoteEditor = ({ noteId, onClose }) => {
           />{" "}
           <button
             type="button"
-            onClick={() => {
-              const newPinnedState = !isPinned;
-
-              setIsPinned(newPinnedState);
-
-              dispatch(
-                updateNote(noteId, {
-                  isPinned: newPinnedState,
-                })
-              );
-
-              setTimeout(() => {
-                setIsPinned((prev) => {
-                  return prev;
-                });
-              }, 100);
-            }}
+            onClick={handlePinToggle}
             className={`p-1 rounded-full ${
-              isPinned ? "text-yellow-500" : "text-gray-400"
-            }`}
-            title={isPinned ? "Unpin note" : "Pin note"}
+              note.isPinned ? "text-yellow-500" : "text-gray-400"
+            } hover:bg-gray-200 dark:hover:bg-gray-700`}
+            title={note.isPinned ? "Unpin note" : "Pin note"}
           >
-            {isPinned ? (
+            {note.isPinned ? (
               <MdPushPin size={18} />
             ) : (
               <MdOutlinePushPin size={18} />
@@ -666,7 +654,7 @@ const NoteEditor = ({ noteId, onClose }) => {
           </div>
         ) : (
           <>
-            {"Text Editor"}
+            {/* Text Editor */}
             <RichTextEditor
               initialContent={content}
               onChange={setContent}
@@ -679,8 +667,12 @@ const NoteEditor = ({ noteId, onClose }) => {
             />
             {isHoveringTerm && <TermTooltip />}
           </>
-        )}{" "}
-      </div>{" "}
+        )}
+        
+        {" "}
+      </div>
+      
+      {" "}
       {/* NLP Insights */}
       {!isEncrypted && (
         <div className="border-t border-gray-300 dark:border-gray-700 p-2 bg-gray-100 dark:bg-gray-900 insights-container">
@@ -779,7 +771,6 @@ const NoteEditor = ({ noteId, onClose }) => {
         </div>
       )}
       <TermTooltip />
-      
       {/* Signature - only shown when not in encryption dialog */}
       {/* {!showEncryptModal && (
         <div className="absolute bottom-3 right-4.5 text-xs text-gray-400 opacity-70 hover:opacity-100 transition-opacity">
@@ -787,7 +778,6 @@ const NoteEditor = ({ noteId, onClose }) => {
           <span className="text-blue-500 dark:text-blue-400">Gemini</span>
         </div>
       )} */}
-      
     </div>
   );
 };

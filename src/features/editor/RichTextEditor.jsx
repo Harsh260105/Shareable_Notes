@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { useRichTextEditor } from "./useRichTextEditor";
-import { useTheme } from "../../shared/hooks/useTheme";
+import ColorPickerButton from "./ColorPickerButton";
 import "./style.css";
 
 const RichTextEditor = ({
@@ -17,8 +17,6 @@ const RichTextEditor = ({
   placeholder = "Start typing here...",
   className = "",
   style = {},
-  showHtmlView = true,
-  showAdvancedOptions = false,
   disabled = false,
 }) => {
   
@@ -56,7 +54,7 @@ const RichTextEditor = ({
     restoreSelection,
     enforceWordWrap,
   } = useRichTextEditor(effectiveContent, onChange);
-  
+
   useEffect(() => {
     if (editorRef.current) {
       enforceWordWrap();
@@ -80,12 +78,12 @@ const RichTextEditor = ({
       }
     },
     [disabled, formatText, ensureEditorFocus]
-  ); 
-  
+  );
+
   // Handle font size change
-  const handleFontSizeChange = useCallback((e) => {
-      
-    const fontSize = e.target.value;
+  const handleFontSizeChange = useCallback(
+    (e) => {
+      const fontSize = e.target.value;
 
       if (fontSize && !disabled) {
         if (editorRef.current) {
@@ -98,7 +96,20 @@ const RichTextEditor = ({
     },
     [disabled, formatText, editorRef]
   );
-  
+
+  // Function to handle color selection
+  const handleColorChange = useCallback(
+    (e) => {
+      const color = e.target.value;
+      if (color && !disabled) {
+        restoreSelection();
+        ensureEditorFocus();
+        formatText("color", color);
+      }
+    },
+    [disabled, formatText, ensureEditorFocus, restoreSelection]
+  );
+
   // Handle alignment change
   // const handleAlignmentChange = useCallback(
   //   (alignment) => {
@@ -213,6 +224,12 @@ const RichTextEditor = ({
             title="Underline (Ctrl+U)"
             isActive={activeFormats.underline}
           />
+          <ColorPickerButton
+            activeColor={activeFormats.color}
+            disabled={disabled}
+            onColorChange={handleColorChange}
+            onBeforeColorChange={saveSelection}
+          />
         </div>
         {/* Font size group */}{" "}
         <div className="rte-toolbar-group z-0">
@@ -292,10 +309,7 @@ const RichTextEditor = ({
             🗑️
           </button>
         </div>
-      </div>
-      
-      {" "}
-      
+      </div>{" "}
       {/* Editor container */}
       <div className="rte-editor-container" style={{ overflow: "hidden" }}>
         <div
@@ -320,12 +334,10 @@ const RichTextEditor = ({
           aria-label="Rich text editor"
         />
       </div>
-
       {/* Status bar */}
       <div className="rte-status-bar">
         <span className="rte-status-info">
-          Characters:{" "}
-          {editorContent.replace(/<[^>]*>/g, "").length} | Words:{" "}
+          Characters: {editorContent.replace(/<[^>]*>/g, "").length} | Words:{" "}
           {
             editorContent
               .replace(/<[^>]*>/g, "")

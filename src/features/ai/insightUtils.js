@@ -30,7 +30,6 @@ export const processTextWithTermHighlighting = async (html) => {
 
 
             if (term.definition.includes('"') || term.definition.includes("'")) {
-
                 term.definition = term.definition.replace(/"/g, '&quot;').replace(/'/g, '&apos;');
             }
 
@@ -139,7 +138,6 @@ export const findRelatedNotesForContent = async (currentNoteContent, allNotes) =
         return [];
     }
 
-    // Extract plain text from HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = currentNoteContent;
     const text = tempDiv.textContent || tempDiv.innerText;

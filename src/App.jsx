@@ -17,24 +17,29 @@ import "./App.css";
 const NotesSync = () => {
   const dispatch = useDispatch();
   const allNotes = useSelector(selectAllNotes);
-
   const pinnedNotes = useSelector(selectPinnedNotes);
 
   useEffect(() => {
     try {
+      // Run the fixStateIntegrity action to correct any issues
       dispatch(fixStateIntegrity());
 
+      // Get IDs of pinned notes from the selector
+      const pinnedNoteIds = pinnedNotes.map((note) => note.id);
+
+      // Check for inconsistencies between note.isPinned flag and pinnedNotes array
       allNotes.forEach((note) => {
-        const isInPinnedArray = pinnedNotes.includes(note.id);
+        const isInPinnedArray = pinnedNoteIds.includes(note.id);
 
         if (note.isPinned !== isInPinnedArray) {
-          dispatch(updateNote(note.id, { isPinned: isInPinnedArray }));
+          // Use the note's current isPinned value as the source of truth
+          dispatch(updateNote(note.id, { isPinned: note.isPinned }));
         }
       });
     } catch (error) {
       console.error("Error in NotesSync:", error);
     }
-  }, [dispatch, allNotes, pinnedNotes]);
+  }, [dispatch]);
 
   return null;
 };

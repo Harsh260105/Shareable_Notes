@@ -34,7 +34,6 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Get all notes for related notes feature
   const allNotes = useSelector((state) => state.notes.notes);
 
   // Function to generate insights on demand
@@ -48,13 +47,15 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
       // Call the async insights generation function
       const generatedInsights = await generateNoteInsights(noteContent);
 
-      // Find related notes separately to avoid blocking other insights
       let relatedNotes = [];
-      try {
-        relatedNotes = await findRelatedNotesForContent(noteContent, allNotes);
-      } catch (relatedError) {
-        console.error("Error finding related notes:", relatedError);
-      }
+      
+      //temporarily disabled related notes generation
+      // Uncomment the following lines to enable related notes generation
+      // try {
+      //   relatedNotes = await findRelatedNotesForContent(noteContent, allNotes);
+      // } catch (relatedError) {
+      //   console.error("Error finding related notes:", relatedError);
+      // }
 
       setInsights({
         ...generatedInsights,
@@ -68,7 +69,6 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
     }
   };
 
-  // Effect to clear insights when content changes
   useEffect(() => {
     if (!noteContent || isEncrypted) {
       setInsights({
@@ -81,20 +81,19 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
       });
       setApiError(null);
     } else if (autoAnalyze) {
-      // If auto-analyze is enabled, generate insights when content changes
+      
       const debounceTimeout = setTimeout(() => {
         generateInsights();
-      }, 1500);
+      }, 2000);
 
       return () => clearTimeout(debounceTimeout);
     }
   }, [noteContent, isEncrypted, autoAnalyze, allNotes]);
+
   useEffect(() => {
-    // Handle the collapse/expand animation with better control
     const container = document.querySelector(".insights-container");
     if (!container) return;
 
-    // Don't allow collapse in fullscreen mode
     if (isFullscreen) {
       container.classList.remove("collapsed");
       container.style.overflow = "";
@@ -102,39 +101,39 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
     }
 
     if (isPanelCollapsed) {
-      // First set overflow hidden to prevent content flashing
+      
       container.style.overflow = "hidden";
 
-      // Then add the collapsed class (with a tiny delay for smoother transition)
       setTimeout(() => {
         container.classList.add("collapsed");
       }, 10);
+
     } else {
-      // Remove collapsed class first
+
       container.classList.remove("collapsed");
 
-      // Then restore overflow after animation completes
       setTimeout(() => {
         if (!isPanelCollapsed) {
           container.style.overflow = "";
         }
-      }, 300); // Match this with the CSS transition duration
+      }, 300); 
     }
-  }, [isPanelCollapsed, isFullscreen]); // Effect to handle fullscreen mode with animations
+  }, [isPanelCollapsed, isFullscreen]); 
+  
+  // Effect to handle fullscreen mode with animations
   useEffect(() => {
     const container = document.querySelector(".insights-container");
     if (!container) return;
     if (isFullscreen) {
-      // Ensure panel is expanded when entering fullscreen
+      
       if (isPanelCollapsed) {
         setIsPanelCollapsed(false);
       }
 
-      // Prepare for animation
-      document.body.style.overflow = "hidden"; // Prevent scrolling behind modal
-      // Slight delay to ensure CSS transitions work smoothly
+      document.body.style.overflow = "hidden"; 
+      
       requestAnimationFrame(() => {
-        // Add fullscreen class first
+
         container.classList.add("fullscreen");
 
         // Then trigger animations after a tiny delay for better rendering
@@ -151,9 +150,9 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
         }, 5);
       });
     } else {
-      // Only handle exit animation if the container was previously in fullscreen
+      
       if (container.classList.contains("fullscreen")) {
-        // Apply exit animations
+      
         container.style.animation =
           "fadeOut 0.3s cubic-bezier(0.36, 0, 0.66, -0.56) forwards";
 
@@ -163,13 +162,11 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
             "scaleOut 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards";
         }
 
-        // Remove fullscreen class after animation completes
         setTimeout(() => {
           container.classList.remove("fullscreen");
           document.body.style.overflow = ""; // Restore scrolling
           container.style.animation = "";
 
-          // Reset panel animation after exiting fullscreen
           if (panel) panel.style.animation = "";
         }, 320);
       } else {
@@ -178,7 +175,6 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
       }
     }
 
-    // Cleanup function
     return () => {
       document.body.style.overflow = "";
       if (container) container.classList.remove("fullscreen");
@@ -195,6 +191,7 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
       </div>
     );
   }
+
   return (
     <div
       className={`bg-white border-2 border-gray-200 dark:border-none dark:bg-gray-800 rounded-lg h-full text-sm overflow-hidden ${
@@ -302,8 +299,8 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
               onClick={() => setActiveTab("summary")}
               onMouseDown={(e) =>
                 e.preventDefault()
-              } /* Prevents focus on click */
-              tabIndex="-1" /* Prevents keyboard focus, but still accessible */
+              } 
+              tabIndex="-1" 
               className={`px-3 py-2 text-sm whitespace-nowrap flex items-center gap-1 tab-button ${
                 activeTab === "summary"
                   ? "active font-medium text-blue-600 dark:text-blue-400"
@@ -312,7 +309,10 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
             >
               <MdSummarize className="text-lg" />
               <span>Summary</span>
-            </button>{" "}
+            </button>
+            
+            {" "}
+            
             <button
               type="button"
               onClick={() => setActiveTab("keywords")}
@@ -326,7 +326,10 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
             >
               <MdOutlineLocalOffer className="text-lg" />
               <span>Keywords</span>
-            </button>{" "}
+            </button>
+            
+            {" "}
+            
             <button
               type="button"
               onClick={() => setActiveTab("grammar")}
@@ -340,7 +343,10 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
             >
               <MdOutlineSpellcheck className="text-lg" />
               <span>Grammar</span>
-            </button>{" "}
+            </button>
+            
+            {" "}
+            
             <button
               type="button"
               onClick={() => setActiveTab("sentiment")}
@@ -354,7 +360,10 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
             >
               <MdOutlineMood className="text-lg" />
               <span>Sentiment</span>
-            </button>{" "}
+            </button>
+            
+            {" "}
+            
             <button
               type="button"
               onClick={() => setActiveTab("related")}
@@ -377,7 +386,7 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
           <div className="min-h-[180px] h-full overflow-y-auto px-3 py-2 flex-1 tab-content-container">
             {" "}
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center h-36">
+              <div className="flex flex-col items-center justify-center h-full">
                 <div className="relative">
                   <div className="h-10 w-10 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
                   <div className="mt-4 text-sm text-blue-500 font-medium">
@@ -585,7 +594,10 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
                       </div>
                     )}
                   </div>
-                )}{" "}
+                )}
+                
+                {" "}
+                
                 {activeTab === "related" && (
                   <div>
                     {insights.relatedNotes &&
@@ -628,16 +640,25 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
                         </p>
                       </div>
                     ) : (
+
                       <div className="text-center py-4">
                         <p className="text-xs text-gray-500 mb-2">
-                          Click "Analyze" to find related notes.
+                          Sorry, This Feature is temporarily disabled.
                         </p>
-                        {!noteContent && (
-                          <p className="text-xs text-gray-400">
-                            Add some content to your note first.
-                          </p>
-                        )}
                       </div>
+
+                      // temporarily disabled related notes generation
+                      // Uncomment the following lines to enable related notes generation
+                      // <div className="text-center py-4">
+                      //   <p className="text-xs text-gray-500 mb-2">
+                      //     Click "Analyze" to find related notes.
+                      //   </p>
+                      //   {!noteContent && (
+                      //     <p className="text-xs text-gray-400">
+                      //       Add some content to your note first.
+                      //     </p>
+                      //   )}
+                      // </div>
                     )}
                   </div>
                 )}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectPinnedNotes,
@@ -7,50 +7,49 @@ import {
   setFilter,
   setSortBy,
   setSortDirection,
+  deleteNote,
+  selectActiveNotes,
   restoreNote,
   permanentlyDeleteNote,
   createNote,
   fixStateIntegrity,
 } from "../slices/notesSlice";
-import { MdPushPin, MdAddCircle, MdSearch } from "react-icons/md";
+import { MdPushPin, MdAddCircle, MdSearch, MdDelete, MdSelectAll } from "react-icons/md";
 
 const NoteList = ({ activeFolder, onSelectNote }) => {
   const dispatch = useDispatch();
   const pinnedNotes = useSelector(selectPinnedNotes);
   const unpinnedNotes = useSelector(selectUnpinnedNotes);
   const trashedNotes = useSelector(selectTrashedNotes);
+  const activeNotes = useSelector(selectActiveNotes);
   const filter = useSelector((state) => state.notes.filter);
   const sortBy = useSelector((state) => state.notes.sortBy);
   const sortDirection = useSelector((state) => state.notes.sortDirection);
   const allPinnedIds = useSelector((state) => state.notes.pinnedNotes || []);
 
   const [showSortOptions, setShowSortOptions] = useState(false);
+  const [markedForDeletion, setMarkedForDeletion] = useState([]);
 
-  // Fix state integrity on component mount
   useEffect(() => {
     try {
-      // Ensure the state is valid when NoteList mounts
       dispatch(fixStateIntegrity());
     } catch (error) {
       console.error("Error fixing state integrity in NoteList:", error);
     }
   }, [dispatch]);
 
-  const getNotes = () => {
-    switch (activeFolder) {
-      case "trash":
-        return trashedNotes;
-      default:
-        // Important: we don't combine them here, we'll render them separately
-        // to maintain the pinned section at the top
-        return activeFolder === "trash" ? trashedNotes : null;
-    }
-  };
+  // const getNotes = () => {
+  //   switch (activeFolder) {
+  //     case "trash":
+  //       return trashedNotes;
+  //     default:
+  //       return activeFolder === "trash" ? trashedNotes : null;
+  //   }
+  // };
 
   // Handle sorting
   const handleSort = (newSortBy) => {
     if (sortBy === newSortBy) {
-      // Toggle direction if clicking the same sort option
       dispatch(setSortDirection(sortDirection === "asc" ? "desc" : "asc"));
     } else {
       dispatch(setSortBy(newSortBy));
@@ -80,32 +79,26 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
       ? `${plainText.substring(0, maxLength)}...`
       : plainText;
   };
-  // Handle creating a new note
+ 
   const handleCreateNote = () => {
-    // Create a new note and capture the action result
-    // We create an empty note so the placeholder text will be shown
+    
     const action = dispatch(createNote("Untitled Note", "", false, false));
 
-    // Extract the new note ID from the action payload
     const newNoteId = action.payload.id;
 
-    // Select the new note automatically
     onSelectNote(newNoteId);
   };
 
-  // Handle note restoration from trash
   const handleRestoreNote = (e, noteId) => {
     e.stopPropagation();
     dispatch(restoreNote({ id: noteId }));
   };
-  // Handle permanent deletion
+
   const handlePermanentDelete = (e, noteId) => {
     e.stopPropagation();
 
-    // Find the note
     const noteToDelete = trashedNotes.find((note) => note.id === noteId);
 
-    // Check if the note is encrypted
     if (noteToDelete && noteToDelete.isEncrypted) {
       alert(
         "Cannot delete an encrypted note. Please decrypt the note first to delete it."
@@ -122,7 +115,6 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
     }
   };
 
-  // Filter notes based on search term and then sort
   const filterAndSortNotes = (notesArray) => {
     if (!notesArray) return [];
 
@@ -162,6 +154,37 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
   const filteredSortedPinnedNotes = filterAndSortNotes(pinnedNotes);
   const filteredSortedUnpinnedNotes = filterAndSortNotes(unpinnedNotes);
   const filteredSortedTrashedNotes = filterAndSortNotes(trashedNotes);
+
+  const handleMarkForDeletion = (noteId) => {
+    if (markedForDeletion.includes(noteId)) {
+      setMarkedForDeletion(markedForDeletion.filter((id) => id !== noteId));
+    } else {
+      setMarkedForDeletion([...markedForDeletion, noteId]);
+    }
+  };
+
+  const handleMassDelete = () => {
+    if (markedForDeletion.length === 0) {
+      alert("No notes selected for deletion.");
+      return;
+    }
+
+    if (window.confirm("Are you sure you want to delete the selected notes?")) {
+      markedForDeletion.forEach((noteId) => {
+        dispatch(deleteNote({ id: noteId }));
+      });
+      setMarkedForDeletion([]);
+    }
+  };
+
+  const selectAllForDeletion = () => {
+    const allNoteIds = activeNotes.map((note) => note.id);
+    if (markedForDeletion.length > 0) {
+      setMarkedForDeletion([]);
+    } else {
+      setMarkedForDeletion(allNoteIds);
+    }
+  };
 
   // Final notes array for rendering
   const finalNotes =
@@ -249,6 +272,34 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
           <div className="text-sm text-gray-500">
             {finalNotes.length} {finalNotes.length === 1 ? "note" : "notes"}
           </div>
+
+          {/* {activeFolder !== "trash" && (
+            <button
+              type="button"
+              onClick={selectAllForDeletion}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md ${
+                markedForDeletion.length > 0
+                  ? "bg-gray-400 hover:bg-red-600 text-white"
+                  : "bg-gray-300 hover:bg-gray-400 text-gray-700"
+              } transition-colors duration-200 shadow-sm`}
+              title={markedForDeletion.length > 0 ? "Unmark all for deletion" : "Mark all for deletion"}
+            >
+              <MdSelectAll size={18} />
+            </button>
+          )} */}
+
+
+          {activeFolder !== "trash" && markedForDeletion.length > 0 && (
+            <button
+              type="button"
+              onClick={() => handleMassDelete()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gray-400 hover:bg-red-600 text-white transition-colors duration-200 shadow-sm"
+              title="Delete marked notes"
+            >
+              <MdDelete size={18} />
+            </button>
+          )}
+
         </div>
       </div>
 
@@ -287,6 +338,24 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
                         </p>
                       </div>
                       <div className="flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => handleMarkForDeletion(note.id)}
+                          className={`p-1 ${
+                            markedForDeletion.includes(note.id)
+                              ? "text-red-500"
+                              : "text-gray-400"
+                          }`}
+                          title={
+                            markedForDeletion.includes(note.id)
+                              ? "Unmark for deletion"
+                              : "Mark for deletion"
+                          }
+                        >
+                          <MdDelete size={20} />
+                        </button>
+                      </div>
+                      <div className="flex items-center mt-1">
                         <span className="text-yellow-500">
                           <MdPushPin size={20} />
                         </span>
@@ -325,6 +394,24 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
                             : truncateContent(note.content)}
                         </p>
                       </div>
+                      <div className="flex items-center">
+                          <button
+                            type="button"
+                            onClick={() => handleMarkForDeletion(note.id)}
+                            className={`p-1 ${
+                              markedForDeletion.includes(note.id)
+                                ? "text-red-500"
+                                : "text-gray-400"
+                            }`}
+                            title={
+                              markedForDeletion.includes(note.id)
+                                ? "Unmark for deletion"
+                                : "Mark for deletion"
+                            }
+                          >
+                            <MdDelete size={20} />
+                          </button>
+                        </div>
                     </div>
                   </li>
                 ))}
