@@ -643,7 +643,10 @@ const InsightsPanel = ({ noteContent, isEncrypted }) => {
 
                       <div className="text-center py-4">
                         <p className="text-xs text-gray-500 mb-2">
-                          Sorry, This Feature is temporarily disabled.
+                          Sorry, This Feature is temporarily disabled. 
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          It will be back soon :)
                         </p>
                       </div>
 
