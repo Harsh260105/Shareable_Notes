@@ -174,6 +174,8 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
         dispatch(deleteNote({ id: noteId }));
       });
       setMarkedForDeletion([]);
+    } else {
+      setMarkedForDeletion([]);
     }
   };
 
@@ -293,7 +295,7 @@ const NoteList = ({ activeFolder, onSelectNote }) => {
             <button
               type="button"
               onClick={() => handleMassDelete()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gray-400 hover:bg-red-600 text-white transition-colors duration-200 shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gray-400/80 dark:bg-gray-600 hover:bg-red-500 text-white transition-colors duration-200 shadow-sm"
               title="Delete marked notes"
             >
               <MdDelete size={18} />
